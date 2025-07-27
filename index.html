@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>California SGIP Eligibility & Incentive Calculator</title>
+  <!-- TailwindCSS for rapid styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* -----------------------------------------
+       SGIP Fact-Sheet Colour Palette (2025) 
+       pulled from CPUC one-pager (deep blue & gold)
+    ----------------------------------------- */
+    :root {
+      --primary: #004b87;   /* CPUC deep blue  */
+      --primary-dark: #003460; /* darker hover  */
+      --accent: #f4b000;    /* SGIP gold       */
+      --accent-dark:#c59200;
+      --bg: #f8f9fb;        /* very light gray */
+      --text: #1e293b;      /* slate-800       */
+    }
+    body { background: var(--bg); color: var(--text); }
+    button {
+      background: var(--primary);
+      color: #fff; font-weight: 600;
+      padding: 0.75rem 1.5rem; border-radius: 0.625rem;
+      transition: background 0.25s;
+    }
+    button:hover { background: var(--primary-dark); }
+    select, input[type="number"], input[type="text"], input[type="email"], input[type="tel"] {
+      width: 100%; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.65rem;
+    }
+    select:focus, input:focus {
+      outline: none; box-shadow: 0 0 0 3px rgba(0, 75, 135, 0.25);
+    }
+    .section-card {
+      background: #fff; border-radius: 1rem; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05); padding: 2rem;
+    }
+    /* Accent underline for h1 */
+    h1::after {
+      content: ""; display: block; height: 4px; width: 4rem; margin: 1rem auto 0; background: var(--accent);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- ✦ HEADER ✦ -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+      <span class="font-semibold text-lg tracking-tight text-gray-800">SGIP Calculator</span>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="#calcForm" class="text-gray-600 hover:text-gray-900">Calculator</a>
+        <a href="#rates" class="text-gray-600 hover:text-gray-900">Rates & Rules</a>
+        <a href="#about" class="text-gray-600 hover:text-gray-900">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ✦ HERO ✦ -->
+  <section class="text-center py-14 px-4 bg-white shadow-sm">
+    <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 max-w-3xl mx-auto">California SGIP Eligibility & Incentive Calculator</h1>
+    <p class="max-w-2xl mx-auto mt-4 text-lg text-gray-600">Find out which Self-Generation Incentive Program track you qualify for and estimate your potential rebate.</p>
+    <a href="#calcForm" class="inline-block mt-6 px-8 py-3 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-semibold rounded-lg shadow">Get Started</a>
+  </section>
+
+  <!-- ✦ MAIN GRID ✦ -->
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-10 px-4 py-16">
+      <!-- Progress Sidebar (desktop) -->
+      <aside class="hidden xl:block">
+        <ol class="relative border-l-2 border-gray-200 pl-6 space-y-10 text-lg">
+          <li class="flex items-start space-x-4"><span class="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-white font-semibold">1</span><span>Address</span></li>
+          <li class="flex items-start space-x-4"><span class="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-white font-semibold">2</span><span>System</span></li>
+          <li class="flex items-start space-x-4"><span class="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-white font-semibold">3</span><span>Eligibility</span></li>
+          <li class="flex items-start space-x-4"><span class="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-white font-semibold">4</span><span>Incentive</span></li>
+        </ol>
+      </aside>
+
+      <!-- Calculator Form Card -->
+      <section class="section-card xl:col-span-1" id="calculatorCard">
+        <form id="calcForm" class="space-y-8">
+
+          <!-- HOST & ADDRESS -->
+          <div class="space-y-4">
+            <h2 class="text-2xl font-semibold">Site & Customer</h2>
+            <div>
+              <label for="utility" class="font-semibold">Utility</label>
+              <select id="utility"><option value=""></option><option value="pge">PG&E</option><option value="sce">SCE</option><option value="sdge">SDG&E</option><option value="scg">SoCalGas</option><option value="ladwp">LADWP</option></select>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="isCustomerOfRecord" class="font-semibold">Customer of Record?</label>
+                <select id="isCustomerOfRecord"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
+              </div>
+              <div>
+                <label for="isRented" class="font-semibold">Property Rented?</label>
+                <select id="isRented"><option value=""></option><option value="no">No</option><option value="yes">Yes</option></select>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="rentalExtras">
+              <div>
+                <label for="hasApprovalLetter" class="font-semibold">Homeowner Approval Letter?</label>
+                <select id="hasApprovalLetter"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- SYSTEM -->
+          <div class="space-y-4">
+            <h2 class="text-2xl font-semibold">System Details</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="capacity" class="font-semibold">Battery Capacity (kWh)</label>
+                <input id="capacity" type="number" step="0.1" min="0" placeholder="e.g. 15" value="15">
+              </div>
+              <div>
+                <label for="solarCapacity" class="font-semibold">Solar PV Size (kW)</label>
+                <input id="solarCapacity" type="number" step="0.1" min="0" placeholder="e.g. 5" value="5">
+              </div>
+            </div>
+            <div>
+              <label for="backup" class="font-semibold">Backup Capability?</label>
+              <select id="backup"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
+            </div>
+          </div>
+
+          <!-- ELIGIBILITY -->
+          <div class="space-y-4">
+            <h2 class="text-2xl font-semibold">Eligibility Questions</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="customerType" class="font-semibold">Customer Class</label>
+                <select id="customerType"><option value=""></option><option value="residential-single">Single-Family</option><option value="residential-multi">Multifamily</option><option value="commercial">Commercial</option><option value="industrial">Industrial/Agric.</option></select>
+              </div>
+              <div>
+                <label for="lowIncome" class="font-semibold">Low-Income Qualified?</label>
+                <select id="lowIncome"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
+              </div>
+              <div>
+                <label for="inDAC" class="font-semibold">Disadvantaged Community?</label>
+                <select id="inDAC"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
+              </div>
+              <div>
+                <label for="isHFTD" class="font-semibold">High Fire Threat Area?</label>
+                <select id="isHFTD"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACTION -->
+          <div class="text-right pt-2">
+            <button id="btnCheck" type="button">Check Eligibility</button>
+          </div>
+        </form>
+        <div id="result" class="mt-8 hidden section-card"></div>
+      </section>
+
+      <!-- Maps & Info Panel -->
+      <section class="space-y-6 xl:col-span-1">
+        <div class="section-card">
+          <h3 class="text-lg font-semibold mb-2">DAC & Fire-Threat Maps</h3>
+          <iframe class="rounded-lg w-full h-64" src="https://capuc.maps.arcgis.com/apps/webappviewer/index.html?id=5bdb921d747a46929d9f00dbdb6d0fa2" title="CPUC Maps"></iframe>
+        </div>
+        <div class="section-card" id="rates">
+          <details open>
+            <summary class="cursor-pointer text-lg font-semibold">📊 SGIP Incentive Rates & Qualifying Tracks</summary>
+            <div class="mt-4 text-sm leading-6 space-y-8">
+              <!-- RSSE -->
+              <div>
+                <h4 class="font-semibold text-base text-[var(--primary)]">Residential Solar & Storage Equity (RSSE)</h4>
+                <p>Flat rate: <strong>$1.10/Wh</strong> for storage & <strong>$3.10/W</strong> for solar. Targeted at low-income single-family and multifamily households. <em>See fact-sheet page 2.</em> fileciteturn1file0L1-L18</p>
+              </div>
+              <!-- Equity / Equity Resiliency -->
+              <div>
+                <h4 class="font-semibold text-base text-[var(--primary)]">Equity & Equity Resiliency</h4>
+                <ul class="list-disc pl-6">
+                  <li>Residential Storage Equity: <strong>$0.85/Wh</strong></li>
+                  <li>Equity Resiliency (all): <strong>$1.00/Wh</strong> (meets DAC + resiliency triggers)</li>
+                </ul>
+              </div>
+              <!-- General Market -->
+              <div>
+                <h4 class="font-semibold text-base text-[var(--primary)]">General Market Storage (Step Rates)</h4>
+                <table class="w-full text-xs border border-gray-300">
+                  <thead class="bg-[var(--accent)] text-white">
+                    <tr><th class="p-1">Step</th><th>Small Res ($/Wh)</th><th>Large Scale ($/Wh)</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr class="odd:bg-gray-50"><td class="p-1 text-center">1</td><td>$0.50</td><td>$0.50</td></tr>
+                    <tr class="odd:bg-gray-50"><td class="p-1 text-center">2</td><td>$0.40</td><td>$0.40</td></tr>
+                    <tr class="odd:bg-gray-50"><td class="p-1 text-center">3</td><td>$0.35</td><td>$0.35</td></tr>
+                    <tr class="odd:bg-gray-50"><td class="p-1 text-center">4</td><td>$0.30</td><td>$0.30</td></tr>
+                    <tr class="odd:bg-gray-50"><td class="p-1 text-center">5</td><td>$0.25</td><td>$0.25</td></tr>
+                    <tr class="odd:bg-gray-50"><td class="p-1 text-center">6</td><td>$0.20</td><td>N/A</td></tr>
+                    <tr class="odd:bg-gray-50"><td class="p-1 text-center">7</td><td>$0.15</td><td>N/A</td></tr>
+                  </tbody>
+                </table>
+                <p class="mt-2">Large-Scale ITC projects receive ~72% of non-ITC rate; resiliency adder +$0.15/Wh if criteria met.</p>
+              </div>
+              <!-- Generation -->
+              <div>
+                <h4 class="font-semibold text-base text-[var(--primary)]">Renewable Generation</h4>
+                <p>Flat base incentive <strong>$2.00/W</strong>. Resiliency Adder: +<strong>$2.50/W</strong> for eligible non-res customers.</p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ✦ FOOTER ✦ -->
+  <footer class="bg-white border-t text-sm text-gray-500 text-center py-6" id="about">
+    <p class="max-w-7xl mx-auto px-4">Open-source tool – cross-check rates at <a href="https://www.selfgenca.com" class="text-[var(--primary)] hover:underline" target="_blank">selfgenca.com</a>.</p>
+  </footer>
+
+  <!-- ✦ CALCULATION LOGIC ✦ -->
+  <script>
+    /* ---------- Helper Shortcuts ---------- */
+    const v = id => document.getElementById(id).value;
+    const n = id => parseFloat(v(id)) || 0;
+    const y = id => v(id) === 'yes';
+
+    /* ---------- Flat & Step Rates ---------- */
+    const RATES = {
+      rsseStorage: 1100, // $/kWh – Residential Solar & Storage Equity (storage)
+      rsseSolar:   3100, // $/kW  – Residential Solar & Storage Equity (solar)
+      resStorageEquity: 0.85,
+      equityResiliency: 1.00,
+      smallResSteps: [0.50,0.40,0.35,0.30,0.25,0.20,0.15],
+      largeSteps:   [0.50,0.40,0.35,0.30,0.25],
+      largeResilAdder: 0.15,
+      generationBase: 2.00,
+      generationAdder:2.50
+    };
+
+    /* ---------- Simple Qualification Engine ---------- */
+    function decideTrack(){
+      const cust = v('customerType');
+      const lowI = y('lowIncome');
+      const dac  = y('inDAC');
+      const hftd = y('isHFTD');
+
+      // 1) RSSE (new program) – low income residential customers
+      if(['residential-single','residential-multi'].includes(cust) && lowI){
+        return {track:'Residential Solar & Storage Equity', rateStorage:RATES.rsseStorage, rateSolar:RATES.rsseSolar, isWh:true};
+      }
+      // 2) Equity Resiliency – residential in DAC & resiliency area
+      if(['residential-single','residential-multi'].includes(cust) && dac && hftd){
+        return {track:'Equity Resiliency', rateStorage:RATES.equityResiliency, isWh:true};
+      }
+      // 3) Residential Storage Equity – low-income / DAC residential
+      if(['residential-single','residential-multi'].includes(cust) && (dac||lowI)){
+        return {track:'Residential Storage Equity', rateStorage:RATES.resStorageEquity, isWh:true};
+      }
+      // 4) Small Residential (General Market)
+      if(cust==='residential-single'){
+        const step = 6; // default to latest step index (6 => $0.15)
+        return {track:'General Market – Small Residential', rateStorage:RATES.smallResSteps[step], isWh:true};
+      }
+      // 5) Large-Scale Storage (assume step 4)
+      if(['commercial','industrial','residential-multi'].includes(cust)){
+        const step = 4; // $0.30 default
+        return {track:'General Market – Large-Scale Storage', rateStorage:RATES.largeSteps[step], isWh:true};
+      }
+      return {track:'Track Unknown', rateStorage:0, isWh:true};
+    }
+
+    /* ---------- UI Interaction ---------- */
+    document.getElementById('btnCheck').addEventListener('click',()=>{
+      const capKWh = n('capacity');
+      const solarKW= n('solarCapacity');
+      const t = decideTrack();
+      const estimate = t.isWh ? (capKWh * t.rateStorage) : (capKWh * 1000 * t.rateStorage); // simple example
+      const solarEst = t.rateSolar ? (solarKW * t.rateSolar) : 0;
+      const total = estimate + solarEst;
+      const html = `
+        <h3 class="text-xl font-semibold mb-2">Result</h3>
+        <p>You qualify for: <strong>${t.track}</strong></p>
+        <p class="mt-2">Estimated incentive for storage: <strong>$${estimate.toLocaleString()}</strong>${t.rateSolar?` and solar: <strong>$${solarEst.toLocaleString()}</strong>`:''}</p>
+        <p class="mt-1 font-semibold">Total estimated rebate: $${total.toLocaleString()}</p>`;
+      const res = document.getElementById('result');
+      res.innerHTML = html;
+      res.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>

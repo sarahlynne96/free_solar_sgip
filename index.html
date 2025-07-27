@@ -24,6 +24,7 @@
     #result ul { list-style:disc; padding-left:1.2rem; }
     .doc-list { margin:.5rem 0; padding-left:1.2rem; list-style:disc; }
     hr { border:none; border-top:1px solid #eee; margin:1rem 0; }
+    .total-incentive { font-size:.7rem; color:var(--muted); margin-top:1rem; }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -32,6 +33,7 @@
   <h1>California SGIP Rebate Estimator</h1>
   <div class="wrapper">
     <form id="calcForm" autocomplete="off" novalidate>
+      <!-- Sections 1–4 unchanged -->
       <fieldset>
         <legend>1. Location</legend>
         <label for="county">County of residence</label>
@@ -42,7 +44,6 @@
         <label for="hhIncome">Annual household income ($)</label>
         <input id="hhIncome" name="hhIncome" type="number" min="0" step="1000" placeholder="e.g. 95,000" required />
       </fieldset>
-
       <fieldset>
         <legend>2. Customer Profile</legend>
         <label for="address">Installation address <small>(optional)</small></label>
@@ -55,167 +56,66 @@
           <option value="nonres">Business / Non-Residential</option>
         </select>
       </fieldset>
-
       <fieldset>
         <legend>3. Resiliency</legend>
-        <label for="dacFlag">Located in a DAC or High Fire-Threat District?</label>
-        <small class="note">Check using the integrated or CPUC’s online map tools.</small>
+        <label for="dacFlag">Located in a DAC or HFTD?</label>
+        <small class="note">Check using the integrated or CPUC’s map tools.</small>
         <select id="dacFlag" name="dacFlag" required>
           <option value="" disabled selected>Select…</option>
           <option value="yes">Yes</option>
           <option value="no">No / Unsure</option>
         </select>
-
-        <label for="pspsFlag">Experienced 2 or more PSPS events?</label>
-        <small class="note">Check your utility’s PSPS outage history online.</small>
+        <label for="pspsFlag">Experienced 2+ PSPS events?</label>
+        <small class="note">Check your utility’s PSPS history online.</small>
         <select id="pspsFlag" name="pspsFlag" required>
           <option value="" disabled selected>Select…</option>
           <option value="yes">Yes</option>
           <option value="no">No / Unsure</option>
         </select>
-
-        <label for="critFlag">Medical Baseline or Critical Well-Pump participant?</label>
-        <small class="note">Verify on your utility bill under special rates or programs.</small>
+        <label for="critFlag">Medical Baseline or Critical Well-Pump?</label>
+        <small class="note">Verify on your utility bill under special rates.</small>
         <select id="critFlag" name="critFlag" required>
           <option value="" disabled selected>Select…</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
-
         <label for="careFlag">CARE Program Participant?</label>
-        <small class="note">Found on your utility bill under special discounts.</small>
+        <small class="note">Found under special discounts on your bill.</small>
         <select id="careFlag" name="careFlag" required>
           <option value="" disabled selected>Select…</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
-
         <details style="margin-top:1rem">
-          <summary style="cursor:pointer;font-weight:600;color:var(--secondary)">View Resiliency Maps</summary>
-          <div style="margin-top:.5rem">
-            <iframe src="https://experience.arcgis.com/experience/1c21c53da8de48f1b946f3402fbae55c" width="100%" height="200" style="border:none;"></iframe>
-            <iframe src="https://capuc.maps.arcgis.com/apps/dashboards/ecd21b1c204f47da8b1fcc4c5c3b7d3a" width="100%" height="200" style="border:none;margin-top:.5rem;"></iframe>
-            <iframe src="https://capuc.maps.arcgis.com/apps/webappviewer/index.html?id=5bdb921d747a46929d9f00dbdb6d0fa2" width="100%" height="200" style="border:none;margin-top:.5rem;"></iframe>
-          </div>
+          <summary style="cursor:pointer;font-weight:600;color:var(--secondary)">View Maps</summary>
+          <iframe src="https://experience.arcgis.com/experience/1c21c53da8de48f1b946f3402fbae55c" width="100%" height="150" style="border:none;margin-top:.5rem"></iframe>
+          <iframe src="https://capuc.maps.arcgis.com/apps/dashboards/ecd21b1c204f47da8b1fcc4c5c3b7d3a" width="100%" height="150" style="border:none;margin-top:.5rem"></iframe>
+          <iframe src="https://capuc.maps.arcgis.com/apps/webappviewer/index.html?id=5bdb921d747a46929d9f00dbdb6d0fa2" width="100%" height="150" style="border:none;margin-top:.5rem"></iframe>
         </details>
       </fieldset>
-
       <fieldset>
         <legend>4. System Size</legend>
         <label for="storageKWh">Battery Capacity (kWh)</label>
-        <small class="note">Check battery specs or installation proposal (Default: 30.6 kWh).</small>
+        <small class="note">Default: 30.6 kWh – check specs.</small>
         <input id="storageKWh" name="storageKWh" type="number" min="0" step="0.1" value="30.6" required />
-
-        <label for="solarKW">Solar Array Size (kW, optional)</label>
-        <small class="note">Check system proposal (Default: 8 kW).</small>
+        <label for="solarKW">Solar Array Size (kW)</label>
+        <small class="note">Default: 8 kW – optional.</small>
         <input id="solarKW" name="solarKW" type="number" min="0" step="0.1" value="8" />
       </fieldset>
-
       <button type="submit">Calculate &amp; Print PDF</button>
     </form>
-
     <div id="result"></div>
   </div>
-
   <script>
-    const COUNTY_AMI = {
-      "Alameda":159800,"Alpine":129500,"Amador":109900,"Butte":96600,"Calaveras":101500,
-      "Colusa":96400,"Contra Costa":159800,"Del Norte":93900,"El Dorado":120800,"Fresno":93900,
-      "Glenn":93900,"Humboldt":93900,"Imperial":93900,"Inyo":97200,"Kern":93900,"Kings":93900,
-      "Lake":93900,"Lassen":93900,"Los Angeles":106600,"Madera":93900,"Marin":186600,"Mariposa":93900,
-      "Mendocino":93900,"Merced":93900,"Modoc":93900,"Mono":118500,"Monterey":104500,"Napa":146700,
-      "Nevada":124600,"Orange":136600,"Placer":120800,"Plumas":95300,"Riverside":103900,"Sacramento":120800,
-      "San Benito":140200,"San Bernardino":103900,"San Diego":130800,"San Francisco":186600,"San Joaquin":104600,
-      "San Luis Obispo":125600,"San Mateo":186600,"Santa Barbara":119100,"Santa Clara":195200,
-      "Santa Cruz":132800,"Shasta":101800,"Sierra":93900,"Siskiyou":93900,"Solano":124600,"Sonoma":132000,
-      "Stanislaus":98500,"Sutter":98900,"Tehama":93900,"Trinity":93900,"Tulare":93900,"Tuolumne":101600,
-      "Ventura":131300,"Yolo":135900,"Yuba":98900
-    };
+    const COUNTY_AMI = {"Alameda":159800,"Alpine":129500,"Amador":109900,"Butte":96600,"Calaveras":101500,"Colusa":96400,"Contra Costa":159800,"Del Norte":93900,"El Dorado":120800,"Fresno":93900,"Glenn":93900,"Humboldt":93900,"Imperial":93900,"Inyo":97200,"Kern":93900,"Kings":93900,"Lake":93900,"Lassen":93900,"Los Angeles":106600,"Madera":93900,"Marin":186600,"Mariposa":93900,"Mendocino":93900,"Merced":93900,"Modoc":93900,"Mono":118500,"Monterey":104500,"Napa":146700,"Nevada":124600,"Orange":136600,"Placer":120800,"Plumas":95300,"Riverside":103900,"Sacramento":120800,"San Benito":140200,"San Bernardino":103900,"San Diego":130800,"San Francisco":186600,"San Joaquin":104600,"San Luis Obispo":125600,"San Mateo":186600,"Santa Barbara":119100,"Santa Clara":195200,"Santa Cruz":132800,"Shasta":101800,"Sierra":93900,"Siskiyou":93900,"Solano":124600,"Sonoma":132000,"Stanislaus":98500,"Sutter":98900,"Tehama":93900,"Trinity":93900,"Tulare":93900,"Tuolumne":101600,"Ventura":131300,"Yolo":135900,"Yuba":98900};
     const SIZE_ADJ = [0.7,0.8,0.9,1,1.08,1.16,1.24,1.32];
     const money = v=>isNaN(v)?'N/A':v.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
-
-    function populateCounties(){
-      const sel=document.getElementById('county');
-      sel.innerHTML = '<option value="" disabled selected>Select county…</option>' +
-        Object.keys(COUNTY_AMI).sort().map(c=>`<option value="${c}">${c}</option>`).join('');
-    }
-    function updateMedian(){
-      const c=document.getElementById('county').value;
-      document.getElementById('medianNote').textContent =
-        c?`4-person AMI for ${c}: ${money(COUNTY_AMI[c])}`:'';
-    }
-    function geocode(addr){
-      return new Promise(res=>{
-        new google.maps.Geocoder().geocode({address:addr},(r,s)=>res(s==='OK'&&r[0]?r[0].geometry.location:null));
-      });
-    }
-    async function fetchFeatures(url){
-      try{let r=await fetch(url);if(!r.ok) throw'';let j=await r.json();return j.features||[]}catch{return[]}
-    }
+    function populateCounties(){const sel=document.getElementById('county');sel.innerHTML='<option value="" disabled selected>Select county…</option>'+Object.keys(COUNTY_AMI).sort().map(c=>`<option value="${c}">${c}</option>`).join('');}
+    function updateMedian(){const c=document.getElementById('county').value;document.getElementById('medianNote').textContent=c?`4-person AMI for ${c}: ${money(COUNTY_AMI[c])}`:'';}
+    function geocode(addr){return new Promise(res=>{new google.maps.Geocoder().geocode({address:addr},(r,s)=>res(s==='OK'&&r[0]?r[0].geometry.location:null));});}
+    async function fetchFeatures(url){try{let r=await fetch(url);if(!r.ok)throw'';let j=await r.json();return j.features||[]}catch{return[]}}
     async function checkDAC(lat,lng){return (await fetchFeatures(`https://gis.data.ca.gov/arcgis/rest/services/Environmental/CalEnviroScreen_4/MapServer/3/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&inSR=4326&outFields=SB535&returnGeometry=false&f=json`)).some(x=>x.attributes.SB535==='Y');}
     async function checkHFTD(lat,lng){return (await fetchFeatures(`https://services2.arcgis.com/nj6xXZ7U2CGDtXPl/arcgis/rest/services/CPUC_Fire_Threat_Districts/FeatureServer/0/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&inSR=4326&outFields=FHSZONES&returnGeometry=false&f=json`)).some(x=>['2','3'].includes(String(x.attributes.FHSZONES)));}
-    async function checkPSPS(lat,lng){return (await fetchFeatures(`https://services2.arcgis.com/YZCmG5dGqn0pln4I/arcgis/rest/services/PSPS_Events_Layer/FeatureServer/0/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&inSR=4326&outFields=*&returnGeometry=false&f=json`)).length>0;}
-    function threshold(county,size){
-      const b=COUNTY_AMI[county]; if(!b||isNaN(size)) return null;
-      const idx=Math.min(Math.max(size-1,0),7);
-      return b * SIZE_ADJ[idx] * 0.8;
-    }
-
-    async function onSubmit(e){
-      e.preventDefault();
-      const f=e.target, btn=f.querySelector('button'), res=document.getElementById('result');
-      btn.disabled=true; res.style.display='none'; res.innerHTML='';
-
-      const d=Object.fromEntries(new FormData(f)), income=+d.hhIncome, bat=+d.storageKWh, sol=+d.solarKW;
-      if(!d.county||isNaN(income)||!d.custType){
-        alert('Please fill all required fields.');
-        btn.disabled=false; return;
-      }
-
-      const thr=threshold(d.county,4), low=income<=thr, tracks=[];
-      if(d.custType==='single'&&sol>0&&bat>0){
-        const est=1.10*bat*1000+3.10*sol*1000;
-        tracks.push({title:'Equity Solar + Storage',desc:'Low-income residence adding new battery and solar receives the highest SGIP incentive.',reb:est,rate:'($1.10/Wh + $3.10/W)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)','Proof of CARE/FERA or income affidavit'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
-      }
-      if(d.dacFlag==='yes'||d.pspsFlag==='yes'||d.critFlag==='yes'){
-        const est=1.00*bat*1000;
-        tracks.push({title:'Equity Resiliency',desc:'Low-income residence in wildfire/PSPS risk (or medical baseline) receives $1/Wh bonus.',reb:est,rate:'($1.00/Wh)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)','Proof of CARE/FERA or income affidavit','Medical Baseline letter or well-pump affidavit','Proof of ≥2 PSPS events or HFTD map'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
-      }
-      if(low&&bat>0&&sol===0){
-        const est=0.85*bat*1000;
-        tracks.push({title:'Equity Storage-Only',desc:'Low-income residence installing a stand-alone battery.',reb:est,rate:'($0.85/Wh)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)','Proof of CARE/FERA or income affidavit'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
-      }
-      if(sol>0&&bat===0){
-        const est=2.00*sol*1000;
-        tracks.push({title:'Generation (PV-Only)',desc:'PV generation incentive (flat $2/W).',reb:est,rate:'($2.00/W)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
-      }
-      if(!tracks.length) tracks.push({title:'No tracks found.',desc:'',reb:0,rate:'',docs:[],next:''});
-
-      let html='<h3>Estimated Rebates</h3>';
-      tracks.forEach(item=>{
-        html+=`<h4>${item.title}</h4><p>${item.desc}</p><p><strong>Estimated rebate:</strong> ${money(item.reb)}</p><p>${item.rate}</p><p><strong>Documents you’ll likely need:</strong></p><ul class="doc-list">${item.docs.map(d=>`<li>${d}</li>`).join('')}</ul><p><strong>Next steps:</strong> ${item.next}</p><hr>`;
-      });
-      res.innerHTML=html;
-
-      if(!document.getElementById('downloadBtn')){
-        const b=document.createElement('button');
-        b.id='downloadBtn';
-        b.textContent='Calculate & Print PDF';
-        b.onclick=()=>html2pdf().from(document.querySelector('.wrapper')).save();
-        res.appendChild(b);
-      }
-      res.style.display='block';
-      btn.disabled=false;
-    }
-
-    document.addEventListener('DOMContentLoaded',()=>{
-      populateCounties();
-      document.getElementById('county').addEventListener('change',updateMedian);
-      document.getElementById('calcForm').addEventListener('submit',onSubmit);
-      if(window.google&&google.maps&&google.maps.places){
-        new google.maps.places.Autocomplete(document.getElementById('address'),{types:['address'],componentRestrictions:{country:'us'}});
-      }
-    });
-  </script>
-</body>
-</html>
+    async function checkPSPS(lat,lng){return (await fetchFeatures(`https://services2.arcgis.com/YZCmG5dGqn0pln4I/arcgis/rest/services/PSPS_Events_Layer/FeatureServer/0/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&inSR=4326&outFields=*&returnGeometry=false&f=json`)).length>}    
+    function threshold(county,size){let b=COUNTY_AMI[county];if(!b||isNaN(size))return null;let idx=Math.min(Math.max(size-1,0),7);return b*SIZE_ADJ[idx]*0.8;}
+    async function onSubmit(e){e.preventDefault();const f=e.target,btn=f.querySelector('button'),res=document.getElementById('result');btn.disabled=true;res.style.display='none';res.innerHTML='';const d=Object.fromEntries(new FormData(f)),income=+d.hhIncome,bat=+d.storageKWh,sol=+d.solarKW;if(!d.county||isNaN(income)||!d.custType){alert('Please fill required fields.');btn.disabled=false;return;}const thr=threshold(d.county,4),low=income<=thr,tracks=[],totals=[];if(d.custType==='single'&&sol>0&&bat>0){const est=1.10*bat*1000+3.10*sol*1000;tracks.push('You qualify for the full Equity Solar + Storage rate!');totals.push(est);}if(d.dacFlag==='yes'||d.pspsFlag==='yes'||d.critFlag==='yes'){const est=1.00*bat*1000;tracks.push('You qualify for the full Equity Resiliency rate!');totals.push(est);}if(low&&bat>0&&sol===0){const est=0.85*bat*1000;tracks.push('You qualify for the full Equity Storage-Only rate!');totals.push(est);}if(sol>0&&bat===0){const est=2.00*sol*1000;tracks.push('You qualify for the full Generation (PV-Only) rate!');totals.push(est);}if(!tracks.length)tracks.push('No rebate tracks found.');let html='<h3>Qualification Results</h3><ul>';tracks.forEach(t=>html+=`<li>${t}</li>`);html+='</ul>';html+=`<div class=

@@ -1,178 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>SGIP Universal Eligibility & Rebate Calculator (Compact UX)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>California SGIP Eligibility & Incentive Calculator</title>
   <style>
-    :root{
-      --primary:#ffba08;--secondary:#023e8a;--accent:#0077b6;--bg:#f8f9fa;--surface:#fff;--text:#212529;--muted:#666;
+    :root {
+      --primary: #f7941d; /* SGIP orange */
+      --secondary: #0070c0; /* SGIP blue */
+      --text: #111;
+      --bg: #fff;
+      --error: #c00;
     }
-    *{box-sizing:border-box;font-family:'Inter',Arial,sans-serif;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);}
-    header{background:var(--secondary);color:#fff;padding:.75rem;text-align:center;}
-    h1{font-size:clamp(1.25rem,2vw+1rem,1.75rem);font-weight:600;}
-    #app{max-width:1000px;margin:auto;padding:1rem;}
-    /* progress bar */
-    .progress{display:flex;gap:.25rem;margin-bottom:1rem;}
-    .progress div{flex:1;height:4px;background:#ced4da;border-radius:2px;transition:background .3s;}
-    .progress .active{background:var(--primary);}
-    /* wizard */
-    .step{display:none;animation:fade .3s ease;max-height:72vh;overflow:auto;padding-right:.5rem;}
-    .step.active{display:block;}
-    @keyframes fade{from{opacity:.3}to{opacity:1}}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;}
-    label{font-weight:600;font-size:.9rem;margin-bottom:.25rem;display:block;color:var(--secondary);}
-    select,input{width:100%;padding:.55rem .6rem;border:1px solid #ced4da;border-radius:4px;font-size:.95rem;}
-    .actions{display:flex;justify-content:space-between;margin-top:1rem;gap:.5rem;}
-    button{border:none;border-radius:4px;padding:.65rem 1.25rem;font-weight:600;font-size:.95rem;cursor:pointer;transition:background .3s;}
-    .next{background:var(--primary);} .back{background:#adb5bd;color:#fff;} .next:hover{background:var(--accent);color:#fff;} .back:hover{opacity:.85;}
-    /* result */
-    #result{background:var(--surface);padding:1rem;border-left:4px solid var(--primary);border-radius:4px;margin-top:1rem;display:none;line-height:1.5;}
-    summary{cursor:pointer;font-weight:600;margin-bottom:.5rem;}
+
+    /* ------------------  Reset & Base ------------------ */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    h1, h2, h3 { margin: 0.5rem 0; }
+    a { color: var(--secondary); }
+    button {
+      cursor: pointer;
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+    button:hover, button:focus { background: #d67e12; }
+    button[disabled] { background: #ccc; cursor: not-allowed; }
+
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      margin-top: 0.25rem;
+    }
+    label { display: block; margin-top: 1rem; position: relative; }
+    label span.help-icon {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      background: var(--secondary);
+      color: #fff;
+      border-radius: 50%;
+      text-align: center;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      margin-left: 0.25rem;
+      cursor: pointer;
+    }
+    .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      left: 1.5rem;
+      top: -0.25rem;
+      background: #333;
+      color: #fff;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      max-width: 220px;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+    label span.help-icon:focus + .tooltip,
+    label span.help-icon:hover + .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Prefers reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+
+    /* ------------------  Layout ------------------ */
+    .container {
+      flex: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .wizard {
+      position: relative;
+    }
+    .progress {
+      display: flex;
+      margin-bottom: 1rem;
+      list-style: none;
+      padding: 0;
+      counter-reset: step;
+    }
+    .progress li {
+      flex: 1;
+      position: relative;
+      text-align: center;
+      color: #666;
+    }
+    .progress li::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 2rem;
+      height: 2rem;
+      line-height: 2rem;
+      display: inline-block;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      background: #fff;
+      margin-bottom: 0.25rem;
+    }
+    .progress li.active {
+      color: var(--primary);
+    }
+    .progress li.active::before {
+      border-color: var(--primary);
+    }
+    .bar {
+      height: 4px;
+      background: #ccc;
+      position: absolute;
+      left: 0;
+      top: 1rem;
+      width: 100%;
+      z-index: -1;
+    }
+    .bar::after {
+      content: "";
+      position: absolute;
+      height: inherit;
+      background: var(--primary);
+      width: var(--bar-width, 0%);
+      transition: width 0.3s ease;
+    }
+
+    form.step {
+      display: none;
+      animation: fade 0.3s ease;
+    }
+    form.step.active { display: block; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Two‑column layout for ≥640 px */
+    @media (min-width: 640px) {
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+    }
+
+    /* ------------------  Results Card ------------------ */
+    .results-card {
+      border: 2px solid var(--secondary);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    .results-card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .badge {
+      display: inline-block;
+      background: var(--secondary);
+      color: #fff;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .checklist {
+      list-style: square inside;
+      margin: 0.5rem 0 0 0;
+      padding-left: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .error { color: var(--error); font-size: 0.875rem; }
+
+    /* Footer */
+    footer {
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 1rem 0 2rem;
+    }
   </style>
 </head>
 <body>
-<header><h1>SGIP Eligibility & Incentive Calculator</h1></header>
-<div id="app">
-  <!-- compact reference -->
-  <details>
-    <summary>📑 Quick-reference – current SGIP incentive rates</summary>
-    <ul style="margin:.5rem 1.25rem;line-height:1.45">
-      <li><strong>Equity Resiliency (Storage)</strong> – $1.00 / Wh fileciteturn3file3L107-L110</li>
-      <li><strong>Residential Storage Equity</strong> – $0.85 / Wh fileciteturn3file3L99-L103</li>
-      <li><strong>Residential Solar & Storage Equity</strong> – $1,100 / kWh (storage) & $3,100 / kW (solar) fileciteturn2file1L1-L8</li>
-      <li><strong>Small Residential Storage (General Market)</strong> – Step-based $0.50 → $0.15 / Wh fileciteturn3file0L41-L55</li>
-      <li><strong>Large-Scale Storage (General Market)</strong> – Step-based $0.50 → $0.25 / Wh fileciteturn3file0L57-L65</li>
-      <li><strong>Renewable Generation Base</strong> – $2.00 / W with $2.50 / W resiliency adder fileciteturn3file3L127-L135</li>
-    </ul>
-  </details>
+  <main class="container">
+    <h1>SGIP Eligibility & Incentive Calculator</h1>
+    <div class="wizard" aria-label="Eligibility wizard">
+      <ul class="progress" id="progressbar">
+        <li class="active">Customer</li>
+        <li>Location</li>
+        <li>Criteria</li>
+        <li>System</li>
+        <div class="bar"></div>
+      </ul>
 
-  <!-- progress bar -->
-  <div class="progress" id="bar"></div>
+      <!-- Step 1 -->
+      <form id="step1" class="step active" aria-label="Customer type form">
+        <label aria-label="Select your utility">Utility (IOU)
+          <select id="utility" required>
+            <option value="">Choose...</option>
+            <option>PG&E</option>
+            <option>SCE</option>
+            <option>SDG&E</option>
+            <option>SoCalGas</option>
+            <option>LADWP</option>
+          </select>
+        </label>
+        <label aria-label="Select customer type">Customer Type
+          <select id="custType" required>
+            <option value="">Choose...</option>
+            <option>Single-Family</option>
+            <option>Multifamily</option>
+            <option>Non-Residential</option>
+          </select>
+          <span class="help-icon" tabindex="0" aria-label="Help">?</span>
+          <span class="tooltip">Multifamily = 5+ dwelling units. Non‑residential includes commercial, industrial, etc.</span>
+        </label>
+        <div class="grid-2">
+          <button type="button" id="next1" aria-label="Next step">Next</button>
+        </div>
+      </form>
 
-  <form id="calcForm">
-    <!-- STEP 1: Site Basics -->
-    <section class="step active" data-step="0">
-      <div class="grid">
-        <div><label for="utility">Utility *</label>
-          <select id="utility" required><option value="">--</option><option value="pge">PG&E</option><option value="sce">SCE</option><option value="sdge">SDG&E</option><option value="scg">SoCalGas</option></select></div>
-        <div><label for="customerType">Customer Class *</label>
-          <select id="customerType" required><option value="">--</option><option value="res-single">Residential Single-family</option><option value="res-multi">Residential Multifamily</option><option value="nonres">Non-Residential</option></select></div>
-        <div><label for="step">Current SGIP Step *</label>
-          <select id="step" required><option value="">--</option><option value="1">Step 1</option><option value="2">Step 2</option><option value="3">Step 3</option><option value="4">Step 4</option><option value="5">Step 5</option><option value="6">Step 6</option><option value="7">Step 7</option></select></div>
-        <div><label for="storage">Battery Capacity (kWh)</label><input type="number" id="storage" min="0" step="0.1" placeholder="e.g. 15"/></div>
-        <div><label for="pv">Solar Size (kW)</label><input type="number" id="pv" min="0" step="0.1" placeholder="e.g. 5"/></div>
-      </div>
-      <div class="actions"><span></span><button type="button" class="next">Next →</button></div>
-    </section>
+      <!-- Step 2 -->
+      <form id="step2" class="step" aria-label="Location form">
+        <label aria-label="Enter ZIP code">ZIP Code
+          <input id="zip" type="text" pattern="\\d{5}" placeholder="e.g. 90001" required />
+        </label>
+        <label aria-label="DAC or HFTD toggle">Is the site in a DAC or HFTD?
+          <select id="dacHftd" required>
+            <option value="">Choose...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label aria-label="SJV town toggle">SJV Pilot Eligible Town?
+          <select id="sjvTown" required>
+            <option value="">Choose...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+          <span class="help-icon" tabindex="0" aria-label="Help">?</span>
+          <span class="tooltip">See CPUC list of 25 eligible San Joaquin Valley communities.</span>
+        </label>
+        <div class="grid-2">
+          <button type="button" id="back2" aria-label="Go back">Back</button>
+          <button type="button" id="next2" aria-label="Next step">Next</button>
+        </div>
+      </form>
 
-    <!-- STEP 2: Equity / Resiliency Flags -->
-    <section class="step" data-step="1">
-      <div class="grid">
-        <div><label for="lowIncome">Low-Income Household?</label><select id="lowIncome"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-        <div><label for="inDAC">Located in DAC?</label><select id="inDAC"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select></div>
-        <div><label for="inHFTD">Tier 2/3 HFTD?</label><select id="inHFTD"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select></div>
-        <div><label for="psps">2-plus PSPS events?</label><select id="psps"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select></div>
-        <div><label for="medical">Medical Baseline Resident?</label><select id="medical"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select></div>
-        <div><label for="waterWell">Electric Pump Well?</label><select id="waterWell"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select></div>
-        <div><label for="critical">Critical Facility?</label><select id="critical"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select></div>
-      </div>
-      <div class="actions"><button type="button" class="back">← Back</button><button type="button" class="next">Next →</button></div>
-    </section>
+      <!-- Step 3 -->
+      <form id="step3" class="step" aria-label="Income and flags form">
+        <label aria-label="Income eligibility">Household ≤ 80% AMI or enrolled in CARE/FERA?
+          <select id="incomeFlag" required>
+            <option value="">Choose...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label aria-label="PSPS medical or well pump flags">PSPS, medical baseline, or well‑pump?
+          <select id="pspsFlag" required>
+            <option value="">Choose...</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label aria-label="Critical facility type">Critical Facility Type
+          <select id="criticalFacility" required>
+            <option value="none">None</option>
+            <option>Hospital</option>
+            <option>Fire Station</option>
+            <option>Police Station</option>
+            <option>Water / Wastewater</option>
+            <option>Telecom</option>
+          </select>
+        </label>
+        <div class="grid-2">
+          <button type="button" id="back3" aria-label="Go back">Back</button>
+          <button type="button" id="next3" aria-label="Next step">Next</button>
+        </div>
+      </form>
 
-    <!-- STEP 3: Preview & Calculate -->
-    <section class="step" data-step="2">
-      <p>Please review your inputs and click <em>Calculate</em> to see eligibility and estimated incentives.</p>
-      <div class="actions"><button type="button" class="back">← Back</button><button type="button" id="btnCalc" class="next">Calculate</button></div>
-      <div id="result"></div>
-    </section>
-  </form>
-</div>
+      <!-- Step 4 -->
+      <form id="step4" class="step" aria-label="System sizing form">
+        <label aria-label="Storage size in kWh">Desired Storage Size (kWh)
+          <input id="storageKWh" type="number" min="0" step="0.1" required />
+        </label>
+        <label aria-label="Solar size in kW">Paired Solar Size (kW, optional)
+          <input id="solarKW" type="number" min="0" step="0.1" />
+        </label>
+        <label aria-label="Backup capable toggle">Backup‑capable system?
+          <select id="backupCapable" required>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <div class="grid-2">
+          <button type="button" id="back4" aria-label="Go back">Back</button>
+          <button type="submit" id="calc" aria-label="Calculate incentives">Calculate</button>
+        </div>
+        <p id="error" class="error" aria-live="polite"></p>
+      </form>
 
-<script>
-const steps=[...document.querySelectorAll('.step')];
-const bar=document.getElementById('bar');bar.innerHTML='<div></div>'.repeat(steps.length);
-const bars=[...bar.children];bars[0].classList.add('active');
-let cur=0;function show(i){steps[cur].classList.remove('active');bars[cur].classList.remove('active');cur=i;steps[cur].classList.add('active');bars[cur].classList.add('active');}
-[...document.querySelectorAll('.next')].forEach(btn=>btn.onclick=()=>{if(cur<steps.length-1){show(cur+1);}});
-[...document.querySelectorAll('.back')].forEach(btn=>btn.onclick=()=>{if(cur>0){show(cur-1);}});
+      <!-- Results -->
+      <section id="results" class="results-card" tabindex="-1"></section>
+    </div>
+  </main>
 
-/** Rate tables — pulled from SGIP Handbook **/
-const STEP_RATES={1:{small:0.50,large:0.50},2:{small:0.40,large:0.40},3:{small:0.35,large:0.35},4:{small:0.30,large:0.30},5:{small:0.25,large:0.25},6:{small:0.20,large:null},7:{small:0.15,large:null}}; // $/Wh
-const RATES={
-  equityRes:1_000,              // $/Wh
-  resStorageEquity:850,        // $/Wh
-  rsseStorage:1_100,           // $/Wh
-  rsseSolar:3_100,             // $/kW
-  genBase:2_000,               // $/W
-  genResAdder:2_500            // $/W
-};
+  <footer>
+    Rates &amp; rules per <a href="https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/self-generation-incentive-program" target="_blank" rel="noopener">CPUC SGIP</a>. This tool is unofficial.
+  </footer>
 
-function val(id){return document.getElementById(id).value||'';}
-function num(id){return parseFloat(val(id))||0;}
-function yes(id){return val(id)==='yes';}
+  <script>
+    /* ---------- Rate Constants ---------- */
+    const RATES = {
+      resStorageEquity: 0.85,          // $/Wh
+      resEquityResiliency: 1.00,       // $/Wh
+      resSolarStorageEquity2025: 1.10, // $/Wh
+      solarAdder: 3.10,                // $/W
+      smallResStep1: 0.50,             // $/Wh
+      largeScaleStorageStep1: 0.50,    // $/Wh
+      resiliencyAdderNonRes: 0.15,     // $/Wh
+      genBase: 2.00,                   // $/W
+      genResiliencyAdder: 2.50         // $/W
+    };
 
-function determineProgram(){
-  const cust=val('customerType');
-  const low=yes('lowIncome');
-  const dac=yes('inDAC');
-  const hftd=yes('inHFTD');
-  const psps=yes('psps');
-  const medical=yes('medical');
-  const well=yes('waterWell');
-  const critical=yes('critical');
+    /* ---------- Program Definitions ---------- */
+    const programs = [
+      {
+        name: "Residential Equity (Storage)",
+        badge: "Res Equity",
+        category: "residential",
+        eligibility: u => (u.custType !== "Non-Residential") && (u.incomeFlag === "yes"),
+        rate: u => RATES.resStorageEquity,
+        caps: { kWh: u => (u.custType === "Single-Family" ? 30 : 200) }
+      },
+      {
+        name: "Residential Equity – Resiliency",
+        badge: "Equity‑Resiliency",
+        category: "residential",
+        eligibility: u => (u.custType !== "Non-Residential") && (u.pspsFlag === "yes"),
+        rate: u => RATES.resEquityResiliency,
+        caps: { kWh: u => 30 }
+      },
+      {
+        name: "San Joaquin Valley Pilot",
+        badge: "SJV",
+        category: "residential",
+        eligibility: u => u.sjvTown === "yes",
+        rate: u => RATES.resSolarStorageEquity2025,
+        caps: { kWh: u => 30 }
+      },
+      {
+        name: "Small Residential Storage (General Market)",
+        badge: "Small Res",
+        category: "residential",
+        eligibility: u => (u.custType !== "Non-Residential"),
+        rate: u => RATES.smallResStep1,
+        caps: { kWh: u => 30 }
+      },
+      {
+        name: "Non‑Residential Equity",
+        badge: "Non‑Res Equity",
+        category: "non-residential",
+        eligibility: u => (u.custType === "Non-Residential") && u.dacHftd === "yes",
+        rate: u => RATES.smallResStep1,
+        caps: { kWh: u => 2000 }
+      },
+      {
+        name: "Non‑Residential Equity‑Resiliency",
+        badge: "Non‑Res Resiliency",
+        category: "non-residential",
+        eligibility: u => (u.custType === "Non-Residential") && (u.pspsFlag === "yes" || u.criticalFacility !== "none"),
+        rate: u => RATES.smallResStep1 + RATES.resiliencyAdderNonRes,
+        caps: { kWh: u => 2000 }
+      }
+    ];
 
-  // Equity Resiliency
-  if((hftd||psps||medical||well||critical) && (low||dac))
-    return 'Equity Resiliency';
-  // Residential Storage Equity
-  if(cust.startsWith('res') && (low||dac))
-    return 'Residential Storage Equity';
-  // RSSE (requires solar + storage present)
-  if(cust.startsWith('res') && num('storage')>0 && num('pv')>0)
-    return 'Residential Solar & Storage Equity';
-  // General Market buckets
-  if(cust==='res-single'||cust==='res-multi') return 'Small Residential Storage';
-  return 'Large-Scale Storage';
-}
+    /* ---------- Wizard Navigation ---------- */
+    const steps = [
+      document.getElementById("step1"),
+      document.getElementById("step2"),
+      document.getElementById("step3"),
+      document.getElementById("step4")
+    ];
+    const progressItems = document.querySelectorAll(".progress li");
+    const bar = document.querySelector(".bar::after"); // CSS var
 
-function format(x){return x.toLocaleString(undefined,{maximumFractionDigits:0});}
+    let currentStep = 0;
 
-document.getElementById('btnCalc').addEventListener('click',()=>{
-  const prog=determineProgram();
-  const batt=num('storage');const pv=num('pv');const step=parseInt(val('step'))||5;
-  let msg=`<strong>Eligible Track:</strong> ${prog}`;
-  let incentive=0;
-  switch(prog){
-    case 'Equity Resiliency':
-      incentive=batt*RATES.equityRes;
-      msg+=`<br>Storage incentive: $${format(incentive)} (@ $1.00/Wh)`;
-      break;
-    case 'Residential Storage Equity':
-      incentive=batt*RATES.resStorageEquity;
-      msg+=`<br>Storage incentive: $${format(incentive)} (@ $0.85/Wh)`;
-      break;
-    case 'Residential Solar & Storage Equity':
-      const stor=batt*RATES.rsseStorage;
-      const sol=pv*RATES.rsseSolar;
-      incentive=stor+sol;
-      msg+=`<br>Storage: $${format(stor)} + Solar: $${format(sol)} = <strong>$${format(incentive)}</strong>`;
-      break;
-    case 'Small Residential Storage':
-      incentive=batt* (STEP_RATES[step]?.small||0);
-      msg+=`<br>Storage incentive (Step ${step}): $${format(incentive)} (@ $${STEP_RATES[step]?.small||0}/Wh)`;
-      break;
-    case 'Large-Scale Storage':
-      incentive=batt* (STEP_RATES[step]?.large||0);
-      msg+=`<br>Storage incentive (Step ${step}): $${format(incentive)} (@ $${STEP_RATES[step]?.large||0}/Wh)`;
-      break;
-  }
-  const res=document.getElementById('result');res.innerHTML=msg;res.style.display='block';show(2);
-});
-</script>
+    function showStep(i) {
+      steps.forEach((s, idx) => s.classList.toggle("active", idx === i));
+      progressItems.forEach((p, idx) => p.classList.toggle("active", idx <= i));
+      document.documentElement.style.setProperty("--bar-width", ((i) / (steps.length - 1)) * 100 + "%");
+      currentStep = i;
+    }
+
+    /* Next/Back Buttons */
+    document.getElementById("next1").addEventListener("click", () => showStep(1));
+    document.getElementById("back2").addEventListener("click", () => showStep(0));
+    document.getElementById("next2").addEventListener("click", () => showStep(2));
+    document.getElementById("back3").addEventListener("click", () => showStep(1));
+    document.getElementById("next3").addEventListener("click", () => showStep(3));
+    document.getElementById("back4").addEventListener("click", () => showStep(2));
+
+    /* ---------- Calculation ---------- */
+    const form4 = document.getElementById("step4");
+    const results = document.getElementById("results");
+    const errorEl = document.getElementById("error");
+
+    form4.addEventListener("submit", e => {
+      e.preventDefault();
+      errorEl.textContent = "";
+
+      // Collect user inputs
+      const user = {
+        utility: document.getElementById("utility").value,
+        zip: document.getElementById("zip").value,
+        dacHftd: document.getElementById("dacHftd").value,
+        custType: document.getElementById("custType").value,
+        incomeFlag: document.getElementById("incomeFlag").value,
+        pspsFlag: document.getElementById("pspsFlag").value,
+        sjvTown: document.getElementById("sjvTown").value,
+        criticalFacility: document.getElementById("criticalFacility").value,
+        storageKWh: parseFloat(document.getElementById("storageKWh").value || 0),
+        solarKW: parseFloat(document.getElementById("solarKW").value || 0),
+        backupCapable: document.getElementById("backupCapable").value
+      };
+
+      if (!user.utility) return (errorEl.textContent = "Please select a utility.");
+      if (!user.storageKWh) return (errorEl.textContent = "Enter a storage size.");
+
+      // Iterate programs
+      let html = "<h2>Results</h2>";
+      programs.forEach(p => {
+        const eligible = p.eligibility(user);
+        const rate = p.rate(user);
+        const cap = p.caps.kWh(user);
+        const kWhUsed = Math.min(user.storageKWh, cap);
+        const upfront = eligible ? kWhUsed * 1000 * rate : 0;
+        const solarBonus = user.solarKW ? user.solarKW * RATES.solarAdder : 0;
+        const total = upfront + solarBonus;
+
+        html += `
+          <div class="program">
+            <span class="badge">${p.badge}</span>
+            <h3>${p.name}</h3>
+            <p>Eligible: <strong>${eligible ? "Yes" : "No"}</strong></p>
+            <p>Rate: $${rate.toFixed(2)} / Wh</p>
+            <p>Estimated Incentive: <strong>$${total.toLocaleString()}</strong>${user.custType === "Non-Residential" ? " (50% upfront, 50% PBI)" : ""}</p>
+            <a href="https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/self-generation-incentive-program" target="_blank" rel="noopener">Program Details</a>
+            <ul class="checklist">
+              <li>Download official application</li>
+              <li>Contact your Program Administrator</li>
+              <li>Gather utility bills and quotes</li>
+            </ul>
+          </div>`;
+      });
+
+      results.innerHTML = html;
+      results.classList.add("show");
+      results.focus();
+      showStep(3); // stay on last screen
+    });
+  </script>
 </body>
 </html>
+<!--
+**a.** Add AMI lookup via HUD API to auto‑verify income eligibility?
+**b.** Want unit tests with Jest + jsdom to validate each eligibility path?
+-->

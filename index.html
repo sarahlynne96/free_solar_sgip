@@ -20,13 +20,9 @@
     button:disabled { opacity:.6; cursor:not-allowed; }
     #result { display:none; margin-top:2rem; padding:1rem; background:#fff; border-left:5px solid var(--primary); border-radius:4px; }
     #result h3 { margin-top:0; color:var(--secondary); }
-    #result ul { list-style:disc; padding-left:1.2rem; margin:.5rem 0; }
-    .doc-list { margin:.5rem 0; padding-left:1.2rem; }
-    hr { border:none; border-top:1px solid #eee; margin:1rem 0; }
-    .total-incentive { font-size:.7rem; color:var(--muted); margin-top:1rem; }
+    #result p { margin:.5rem 0; }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <h1>California SGIP Rebate Estimator</h1>
@@ -58,7 +54,7 @@
 
       <fieldset>
         <legend>3. Resiliency</legend>
-        <label for="dacFlag">Located in a DAC or HFTD?</label>
+        <label for="dacFlag">Located in a DAC or High Fire-Threat District?</label>
         <small class="note">Use the maps below to check.</small>
         <select id="dacFlag" name="dacFlag" required>
           <option value="" disabled selected>Select…</option>
@@ -74,7 +70,7 @@
           <option value="no">No / Unsure</option>
         </select>
 
-        <label for="critFlag">Medical Baseline or Well-Pump?</label>
+        <label for="critFlag">Medical Baseline or Critical Well-Pump?</label>
         <small class="note">Verify on your utility bill.</small>
         <select id="critFlag" name="critFlag" required>
           <option value="" disabled selected>Select…</option>
@@ -109,14 +105,13 @@
         <input id="solarKW" name="solarKW" type="number" min="0" step="0.1" value="8" />
       </fieldset>
 
-      <button type="submit">Calculate &amp; Print PDF</button>
+      <button type="submit">Calculate</button>
     </form>
 
     <div id="result"></div>
   </div>
 
   <script>
-    // Full list of counties + 4-person AMI values
     const COUNTY_AMI = {
       "Alameda":159800,"Alpine":129500,"Amador":109900,"Butte":96600,"Calaveras":101500,
       "Colusa":96400,"Contra Costa":159800,"Del Norte":93900,"El Dorado":120800,"Fresno":93900,
@@ -130,19 +125,23 @@
       "Stanislaus":98500,"Sutter":98900,"Tehama":93900,"Trinity":93900,"Tulare":93900,"Tuolumne":101600,
       "Ventura":131300,"Yolo":135900,"Yuba":98900
     };
+
     const SIZE_ADJ = [0.7,0.8,0.9,1,1.08,1.16,1.24,1.32];
-    const money = v => isNaN(v) ? 'N/A' : v.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+
+    const money = v => isNaN(v)? 'N/A' : v.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
 
     function populateCounties() {
       const sel = document.getElementById('county');
       sel.innerHTML = '<option value="" disabled selected>Select county…</option>' +
         Object.keys(COUNTY_AMI).sort().map(c => `<option value="${c}">${c}</option>`).join('');
     }
+
     function updateMedian() {
       const c = document.getElementById('county').value;
       document.getElementById('medianNote').textContent =
         c ? `4-person AMI for ${c}: ${money(COUNTY_AMI[c])}` : '';
     }
+
     function threshold(county,size) {
       const b = COUNTY_AMI[county];
       if(!b||isNaN(size)) return null;
@@ -152,55 +151,50 @@
 
     async function onSubmit(e) {
       e.preventDefault();
-      const form = e.target, btn = form.querySelector('button'), res = document.getElementById('result');
-      btn.disabled = true; res.style.display = 'none'; res.innerHTML = '';
+      const form = e.target;
+      const btn = form.querySelector('button');
+      const res = document.getElementById('result');
+      btn.disabled = true;
+      res.style.display = 'none';
+      res.innerHTML = '';
 
-      const data = Object.fromEntries(new FormData(form));
-      const income = +data.hhIncome, bat = +data.storageKWh, sol = +data.solarKW;
-      if(!data.county || isNaN(income) || !data.custType) {
+      const d = Object.fromEntries(new FormData(form));
+      const income = +d.hhIncome;
+      const bat = +d.storageKWh;
+      const sol = +d.solarKW;
+
+      if(!d.county||isNaN(income)||!d.custType) {
         alert('Please complete all required fields.');
-        btn.disabled = false; return;
+        btn.disabled = false;
+        return;
       }
 
-      const thr = threshold(data.county, 4);
+      const thr = threshold(d.county, 4);
       const low = income <= thr;
-      const results = [];
-      let total = 0;
+      const messages = [];
 
-      // Equity Solar + Storage
-      if(data.custType==='single' && sol>0 && bat>0) {
-        results.push({ track:'Equity Solar + Storage', msg:'You qualify for the full Equity Solar + Storage rate!', amount:1.10*bat*1000 + 3.10*sol*1000 });
+      if(d.custType==='single' && sol>0 && bat>0) {
+        messages.push('You qualify for the full Equity Solar + Storage incentive rate.');
       }
-      // Equity Resiliency
-      if(data.dacFlag==='yes' || data.pspsFlag==='yes' || data.critFlag==='yes') {
-        results.push({ track:'Equity Resiliency', msg:'You qualify for the full Equity Resiliency rate!', amount:1.00*bat*1000 });
+      if(d.dacFlag==='yes' || d.pspsFlag==='yes' || d.critFlag==='yes') {
+        messages.push('You qualify for the full Equity Resiliency incentive rate.');
       }
-      // Equity Storage-Only
       if(low && bat>0 && sol===0) {
-        results.push({ track:'Equity Storage-Only', msg:'You qualify for the full Equity Storage-Only rate!', amount:0.85*bat*1000 });
+        messages.push('You qualify for the full Equity Storage-Only incentive rate.');
       }
-      // Generation
       if(sol>0 && bat===0) {
-        results.push({ track:'Generation (PV-Only)', msg:'You qualify for the full Generation (PV-Only) rate!', amount:2.00*sol*1000 });
+        messages.push('You qualify for the full Generation (PV-Only) incentive rate.');
       }
-      if(!results.length) results.push({ track:'None', msg:'No SGIP track applies.', amount:0 });
+      if(!messages.length) {
+        messages.push('No SGIP incentive tracks apply to your inputs.');
+      }
 
-      // Render
-      let html = '<h3>Qualification Results</h3><ul>';
-      results.forEach(r => {
-        total += r.amount;
-        html += `<li><strong>${r.track}:</strong> ${r.msg}</li>`;
-      });
-      html += `</ul><div class="total-incentive">Total Incentive Amount (confidential): ${money(total)}</div>`;
+      // Next steps paragraph
+      let html = '<h3>Results</h3>';
+      messages.forEach(msg => html += `<p>${msg}</p>`);
+      html += '<p><strong>Next steps:</strong> Reserve your incentive → Sign SGIP agreement → Install system → Submit incentive claim.</p>';
 
       res.innerHTML = html;
-      if(!document.getElementById('downloadBtn')) {
-        const b = document.createElement('button');
-        b.id = 'downloadBtn';
-        b.textContent = 'Calculate & Print PDF';
-        b.onclick = () => html2pdf().from(document.querySelector('.wrapper')).save();
-        res.appendChild(b);
-      }
       res.style.display = 'block';
       btn.disabled = false;
     }

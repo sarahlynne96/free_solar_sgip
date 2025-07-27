@@ -8,8 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* -----------------------------------------
-       SGIP Fact-Sheet Colour Palette (2025) 
-       pulled from CPUC one-pager (deep blue & gold)
+       SGIP Fact‑Sheet Colour Palette (2025) 
+       pulled from CPUC one‑pager (deep blue & gold)
     ----------------------------------------- */
     :root {
       --primary: #004b87;   /* CPUC deep blue  */
@@ -17,7 +17,7 @@
       --accent: #f4b000;    /* SGIP gold       */
       --accent-dark:#c59200;
       --bg: #f8f9fb;        /* very light gray */
-      --text: #1e293b;      /* slate-800       */
+      --text: #1e293b;      /* slate‑800       */
     }
     body { background: var(--bg); color: var(--text); }
     button {
@@ -49,7 +49,7 @@
       <span class="font-semibold text-lg tracking-tight text-gray-800">SGIP Calculator</span>
       <nav class="hidden md:flex space-x-8 text-sm font-medium">
         <a href="#calcForm" class="text-gray-600 hover:text-gray-900">Calculator</a>
-        <a href="#rates" class="text-gray-600 hover:text-gray-900">Rates & Rules</a>
+        <a href="#rates" class="text-gray-600 hover:text-gray-900">Rates & Rules</a>
         <a href="#about" class="text-gray-600 hover:text-gray-900">About</a>
       </nav>
     </div>
@@ -57,9 +57,9 @@
 
   <!-- ✦ HERO ✦ -->
   <section class="text-center py-14 px-4 bg-white shadow-sm">
-    <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 max-w-3xl mx-auto">California SGIP Eligibility & Incentive Calculator</h1>
-    <p class="max-w-2xl mx-auto mt-4 text-lg text-gray-600">Find out which Self-Generation Incentive Program track you qualify for and estimate your potential rebate.</p>
-    <a href="#calcForm" class="inline-block mt-6 px-8 py-3 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-semibold rounded-lg shadow">Get Started</a>
+    <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 max-w-3xl mx-auto">California SGIP Eligibility & Incentive Calculator</h1>
+    <p class="max-w-2xl mx-auto mt-4 text-lg text-gray-600">Find out which Self‑Generation Incentive Program track you qualify for and estimate your potential rebate.</p>
+    <a href="#calcForm" class="inline-block mt-6 px-8 py-3 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white font-semibold rounded-lg shadow">Get Started</a>
   </section>
 
   <!-- ✦ MAIN GRID ✦ -->
@@ -81,24 +81,24 @@
 
           <!-- HOST & ADDRESS -->
           <div class="space-y-4">
-            <h2 class="text-2xl font-semibold">Site & Customer</h2>
+            <h2 class="text-2xl font-semibold">Site & Customer</h2>
             <div>
               <label for="utility" class="font-semibold">Utility</label>
               <select id="utility"><option value=""></option><option value="pge">PG&E</option><option value="sce">SCE</option><option value="sdge">SDG&E</option><option value="scg">SoCalGas</option><option value="ladwp">LADWP</option></select>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="isCustomerOfRecord" class="font-semibold">Customer of Record?</label>
+                <label for="isCustomerOfRecord" class="font-semibold">Customer of Record?</label>
                 <select id="isCustomerOfRecord"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
               </div>
               <div>
-                <label for="isRented" class="font-semibold">Property Rented?</label>
+                <label for="isRented" class="font-semibold">Property Rented?</label>
                 <select id="isRented"><option value=""></option><option value="no">No</option><option value="yes">Yes</option></select>
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="rentalExtras">
               <div>
-                <label for="hasApprovalLetter" class="font-semibold">Homeowner Approval Letter?</label>
+                <label for="hasApprovalLetter" class="font-semibold">Homeowner Approval Letter?</label>
                 <select id="hasApprovalLetter"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
               </div>
             </div>
@@ -106,41 +106,41 @@
 
           <!-- SYSTEM -->
           <div class="space-y-4">
-            <h2 class="text-2xl font-semibold">System Details</h2>
+            <h2 class="text-2xl font-semibold">System Details</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="capacity" class="font-semibold">Battery Capacity (kWh)</label>
+                <label for="capacity" class="font-semibold">Battery Capacity (kWh)</label>
                 <input id="capacity" type="number" step="0.1" min="0" placeholder="e.g. 15" value="15">
               </div>
               <div>
-                <label for="solarCapacity" class="font-semibold">Solar PV Size (kW)</label>
+                <label for="solarCapacity" class="font-semibold">Solar PV Size (kW)</label>
                 <input id="solarCapacity" type="number" step="0.1" min="0" placeholder="e.g. 5" value="5">
               </div>
             </div>
             <div>
-              <label for="backup" class="font-semibold">Backup Capability?</label>
+              <label for="backup" class="font-semibold">Backup Capability?</label>
               <select id="backup"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
             </div>
           </div>
 
           <!-- ELIGIBILITY -->
           <div class="space-y-4">
-            <h2 class="text-2xl font-semibold">Eligibility Questions</h2>
+            <h2 class="text-2xl font-semibold">Eligibility Questions</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="customerType" class="font-semibold">Customer Class</label>
-                <select id="customerType"><option value=""></option><option value="residential-single">Single-Family</option><option value="residential-multi">Multifamily</option><option value="commercial">Commercial</option><option value="industrial">Industrial/Agric.</option></select>
+                <label for="customerType" class="font-semibold">Customer Class</label>
+                <select id="customerType"><option value=""></option><option value="residential-single">Single‑Family</option><option value="residential-multi">Multifamily</option><option value="commercial">Commercial</option><option value="industrial">Industrial/Agric.</option></select>
               </div>
               <div>
-                <label for="lowIncome" class="font-semibold">Low-Income Qualified?</label>
+                <label for="lowIncome" class="font-semibold">Low‑Income Qualified?</label>
                 <select id="lowIncome"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
               </div>
               <div>
-                <label for="inDAC" class="font-semibold">Disadvantaged Community?</label>
+                <label for="inDAC" class="font-semibold">Disadvantaged Community?</label>
                 <select id="inDAC"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
               </div>
               <div>
-                <label for="isHFTD" class="font-semibold">High Fire Threat Area?</label>
+                <label for="isHFTD" class="font-semibold">High Fire Threat Area?</label>
                 <select id="isHFTD"><option value=""></option><option value="yes">Yes</option><option value="no">No</option></select>
               </div>
             </div>
@@ -148,7 +148,7 @@
 
           <!-- ACTION -->
           <div class="text-right pt-2">
-            <button id="btnCheck" type="button">Check Eligibility</button>
+            <button id="btnCheck" type="button">Check Eligibility</button>
           </div>
         </form>
         <div id="result" class="mt-8 hidden section-card"></div>
@@ -157,21 +157,21 @@
       <!-- Maps & Info Panel -->
       <section class="space-y-6 xl:col-span-1">
         <div class="section-card">
-          <h3 class="text-lg font-semibold mb-2">DAC & Fire-Threat Maps</h3>
+          <h3 class="text-lg font-semibold mb-2">DAC & Fire‑Threat Maps</h3>
           <iframe class="rounded-lg w-full h-64" src="https://capuc.maps.arcgis.com/apps/webappviewer/index.html?id=5bdb921d747a46929d9f00dbdb6d0fa2" title="CPUC Maps"></iframe>
         </div>
         <div class="section-card" id="rates">
           <details open>
-            <summary class="cursor-pointer text-lg font-semibold">📊 SGIP Incentive Rates & Qualifying Tracks</summary>
+            <summary class="cursor-pointer text-lg font-semibold">📊 SGIP Incentive Rates & Qualifying Tracks</summary>
             <div class="mt-4 text-sm leading-6 space-y-8">
               <!-- RSSE -->
               <div>
-                <h4 class="font-semibold text-base text-[var(--primary)]">Residential Solar & Storage Equity (RSSE)</h4>
-                <p>Flat rate: <strong>$1.10/Wh</strong> for storage & <strong>$3.10/W</strong> for solar. Targeted at low-income single-family and multifamily households. <em>See fact-sheet page 2.</em> fileciteturn1file0L1-L18</p>
+                <h4 class="font-semibold text-base text-[var(--primary)]">Residential Solar & Storage Equity (RSSE)</h4>
+                <p>Flat rate: <strong>$1.10/Wh</strong> for storage & <strong>$3.10/W</strong> for solar. Targeted at low‑income single‑family and multifamily households. <em>See fact‑sheet page 2.</em> fileciteturn1file0L1-L18</p>
               </div>
               <!-- Equity / Equity Resiliency -->
               <div>
-                <h4 class="font-semibold text-base text-[var(--primary)]">Equity & Equity Resiliency</h4>
+                <h4 class="font-semibold text-base text-[var(--primary)]">Equity & Equity Resiliency</h4>
                 <ul class="list-disc pl-6">
                   <li>Residential Storage Equity: <strong>$0.85/Wh</strong></li>
                   <li>Equity Resiliency (all): <strong>$1.00/Wh</strong> (meets DAC + resiliency triggers)</li>
@@ -179,10 +179,10 @@
               </div>
               <!-- General Market -->
               <div>
-                <h4 class="font-semibold text-base text-[var(--primary)]">General Market Storage (Step Rates)</h4>
+                <h4 class="font-semibold text-base text-[var(--primary)]">General Market Storage (Step Rates)</h4>
                 <table class="w-full text-xs border border-gray-300">
                   <thead class="bg-[var(--accent)] text-white">
-                    <tr><th class="p-1">Step</th><th>Small Res ($/Wh)</th><th>Large Scale ($/Wh)</th></tr>
+                    <tr><th class="p-1">Step</th><th>Small Res ($/Wh)</th><th>Large Scale ($/Wh)</th></tr>
                   </thead>
                   <tbody>
                     <tr class="odd:bg-gray-50"><td class="p-1 text-center">1</td><td>$0.50</td><td>$0.50</td></tr>
@@ -194,12 +194,12 @@
                     <tr class="odd:bg-gray-50"><td class="p-1 text-center">7</td><td>$0.15</td><td>N/A</td></tr>
                   </tbody>
                 </table>
-                <p class="mt-2">Large-Scale ITC projects receive ~72% of non-ITC rate; resiliency adder +$0.15/Wh if criteria met.</p>
+                <p class="mt-2">Large‑Scale ITC projects receive ~72% of non‑ITC rate; resiliency adder +$0.15/Wh if criteria met.</p>
               </div>
               <!-- Generation -->
               <div>
-                <h4 class="font-semibold text-base text-[var(--primary)]">Renewable Generation</h4>
-                <p>Flat base incentive <strong>$2.00/W</strong>. Resiliency Adder: +<strong>$2.50/W</strong> for eligible non-res customers.</p>
+                <h4 class="font-semibold text-base text-[var(--primary)]">Renewable Generation</h4>
+                <p>Flat base incentive <strong>$2.00/W</strong>. Resiliency Adder: +<strong>$2.50/W</strong> for eligible non‑res customers.</p>
               </div>
             </div>
           </details>
@@ -210,7 +210,7 @@
 
   <!-- ✦ FOOTER ✦ -->
   <footer class="bg-white border-t text-sm text-gray-500 text-center py-6" id="about">
-    <p class="max-w-7xl mx-auto px-4">Open-source tool – cross-check rates at <a href="https://www.selfgenca.com" class="text-[var(--primary)] hover:underline" target="_blank">selfgenca.com</a>.</p>
+    <p class="max-w-7xl mx-auto px-4">Open‑source tool – cross‑check rates at <a href="https://www.selfgenca.com" class="text-[var(--primary)] hover:underline" target="_blank">selfgenca.com</a>.</p>
   </footer>
 
   <!-- ✦ CALCULATION LOGIC ✦ -->
@@ -257,10 +257,10 @@
         const step = 6; // default to latest step index (6 => $0.15)
         return {track:'General Market – Small Residential', rateStorage:RATES.smallResSteps[step], isWh:true};
       }
-      // 5) Large-Scale Storage (assume step 4)
+      // 5) Large‑Scale Storage (assume step 4)
       if(['commercial','industrial','residential-multi'].includes(cust)){
         const step = 4; // $0.30 default
-        return {track:'General Market – Large-Scale Storage', rateStorage:RATES.largeSteps[step], isWh:true};
+        return {track:'General Market – Large‑Scale Storage', rateStorage:RATES.largeSteps[step], isWh:true};
       }
       return {track:'Track Unknown', rateStorage:0, isWh:true};
     }

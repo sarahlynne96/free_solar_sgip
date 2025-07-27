@@ -3,175 +3,177 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SGIP Eligibility & Incentive Calculator</title>
-  <!-- 100% OFF‑LINE: no external CDNs, everything inline → works from a local file -->
+  <title>SGIP All-Tracks Calculator (HTML-Only)</title>
   <style>
-    /* ===== RESET & BASE ===== */
-    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
-    body{background:#f5f7fa;color:#1e293b;line-height:1.5;display:flex;flex-direction:column;min-height:100vh}
-    h1,h2{font-weight:700;color:#0f172a}
-    h1{font-size:clamp(1.75rem,4vw,2.75rem);text-align:center}
-    h2{font-size:1.25rem;margin-bottom:.5rem}
-    a{color:#004b87;text-decoration:none}
-    a:hover{text-decoration:underline}
+    /*————————  Minimal, inline, works from a local file  ————————*/
+    *,*:before,*:after{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f8fa;color:#1e293b;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+    h1{font-size:clamp(1.75rem,4vw,2.5rem);text-align:center;margin:2rem 1rem .75rem;font-weight:700;color:#0f172a;position:relative}
+    h1:after{content:"";display:block;width:4rem;height:4px;background:#f4b000;margin:.75rem auto 0}
+    h2{font-size:1.2rem;margin:1.5rem 0 .5rem;font-weight:700;color:#0f172a}
     label{font-weight:600;display:block;margin-bottom:.25rem}
     input,select{width:100%;padding:.6rem;border:1px solid #cbd5e1;border-radius:.5rem;font-size:.95rem}
-    select:focus,input:focus{outline:2px solid #94a3b8}
-    button{background:#004b87;color:#fff;padding:.75rem 1.5rem;border:none;border-radius:.5rem;font-weight:600;cursor:pointer}
+    input:focus,select:focus{outline:2px solid #94a3b8}
+    button{margin-top:1rem;background:#004b87;color:#fff;border:none;border-radius:.5rem;padding:.75rem 1.5rem;font-weight:600;cursor:pointer}
     button:hover{background:#003460}
-    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    .container{max-width:1100px;margin:0 auto;padding:1rem;flex:1}
+    .card{background:#fff;border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,.06);padding:2rem;margin-bottom:2rem}
+    table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:1rem}
     th,td{border:1px solid #cbd5e1;padding:.4rem;text-align:center}
     th{background:#f4b000;color:#fff}
-    .container{max-width:1280px;margin:0 auto;padding:1rem;flex:1}
-    .grid{display:grid;gap:2rem}
-    @media(min-width:1280px){.grid-cols-3{grid-template-columns:200px 1fr 1fr}}
-    .card{background:#fff;border-radius:1rem;padding:2rem;box-shadow:0 4px 12px rgba(0,0,0,.06)}
-    .sidebar ol{counter-reset:step}
-    .sidebar li{position:relative;padding-left:2.75rem;margin-bottom:2.5rem;font-weight:600}
-    .sidebar li:before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;width:2rem;height:2rem;background:#f4b000;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
     .hidden{display:none}
-    /* Hero accent */
-    .hero h1:after{content:"";display:block;width:4rem;height:4px;background:#f4b000;margin:.75rem auto 0}
+    ul.docs{margin-top:.75rem;padding-left:1.2rem;font-size:.9rem}
+    ul.docs li{list-style:disc;margin:.25rem 0}
   </style>
 </head>
 <body>
-  <header style="background:#fff;border-bottom:1px solid #e2e8f0">
-    <div style="max-width:1280px;margin:0 auto;padding:1rem;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-weight:700;font-size:1.1rem">SGIP Calculator</span>
-      <nav style="display:flex;gap:1.5rem;font-size:.9rem">
-        <a href="#calcForm">Calculator</a>
-        <a href="#rates">Rates</a>
-        <a href="#about">About</a>
-      </nav>
-    </div>
-  </header>
+  <h1>California SGIP Calculator – All Programs</h1>
 
-  <!-- HERO -->
-  <section class="hero" style="background:#fff;padding:3rem 1rem;box-shadow:0 1px 4px rgba(0,0,0,.04)">
-    <h1>California SGIP Eligibility & Incentive Calculator</h1>
-    <p style="text-align:center;max-width:600px;margin:.75rem auto 0;font-size:1rem;color:#475569">Instantly find which program track you’re in and what rebate you can expect—all offline.</p>
-    <div style="text-align:center;margin-top:1.25rem"><a href="#calcForm"><button>Get Started</button></a></div>
-  </section>
-
-  <!-- MAIN GRID -->
-  <main class="container grid grid-cols-3" style="margin-top:2rem">
-    <!-- SIDEBAR -->
-    <aside class="sidebar" style="display:none" id="sidebar-xl"></aside>
-
-    <!-- FORM CARD -->
-    <section class="card" id="calculatorCard">
-      <form id="calcForm" class="form" autocomplete="off">
-        <!-- Host & customer -->
-        <h2>Site & Customer</h2>
-        <label for="utility">Utility</label>
-        <select id="utility" required><option value="">Select…</option><option value="pge">PG&E</option><option value="sce">SCE</option><option value="sdge">SDG&E</option><option value="scg">SoCalGas</option></select>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
-          <div>
-            <label for="isCustomerOfRecord">Customer of Record?</label>
-            <select id="isCustomerOfRecord" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select>
-          </div>
-          <div>
-            <label for="isRented">Property Rented?</label>
-            <select id="isRented" required><option value="">—</option><option value="no">No</option><option value="yes">Yes</option></select>
-          </div>
+  <div class="container">
+    <!-- ►► CALCULATOR FORM ◄◄ -->
+    <div class="card">
+      <form id="calcForm" autocomplete="off">
+        <!-- CUSTOMER -->
+        <h2>Site &amp; Customer</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">
+          <div><label for="utility">Utility</label><select id="utility" required>
+            <option value="">Select…</option><option>PG&E</option><option>SCE</option><option>SDG&E</option><option>SoCalGas</option><option>LADWP</option></select></div>
+          <div><label for="customerType">Customer Class</label><select id="customerType" required>
+            <option value="">—</option><option value="res-sf">Single-Family</option><option value="res-mf">Multifamily</option><option value="commercial">Commercial</option><option value="gov">Gov/Tribal/Edu/Non-Profit</option><option value="smallbiz">Small Business</option></select></div>
+          <div><label for="lowIncome">Low-Income?</label><select id="lowIncome" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+          <div><label for="dac">In DAC?</label><select id="dac" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+          <div><label for="hftd">HFTD / PSPS events?</label><select id="hftd" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+          <div><label for="critical">Critical Facility?</label><select id="critical" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+          <div><label for="sjv">San Joaquin Valley city?</label><select id="sjv" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
         </div>
 
-        <h2 style="margin-top:2rem">System Details</h2>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-          <div>
-            <label for="capacity">Battery Capacity (kWh)</label>
-            <input id="capacity" type="number" min="0" step="0.1" value="13.5" required>
-          </div>
-          <div>
-            <label for="solarCapacity">Solar PV Size (kW)</label>
-            <input id="solarCapacity" type="number" min="0" step="0.1" value="5" required>
-          </div>
-        </div>
-        <label for="backup" style="margin-top:1rem">Backup Capability?</label>
-        <select id="backup" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select>
-
-        <h2 style="margin-top:2rem">Eligibility Questions</h2>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-          <div>
-            <label for="customerType">Customer Class</label>
-            <select id="customerType" required><option value="">—</option><option value="residential-single">Single‑Family</option><option value="residential-multi">Multifamily</option><option value="commercial">Commercial</option><option value="industrial">Industrial</option></select>
-          </div>
-          <div>
-            <label for="lowIncome">Low‑Income?</label>
-            <select id="lowIncome" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select>
-          </div>
-          <div>
-            <label for="inDAC">Disadvantaged Community?</label>
-            <select id="inDAC" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select>
-          </div>
-          <div>
-            <label for="isHFTD">High‑Fire Threat?</label>
-            <select id="isHFTD" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select>
-          </div>
+        <!-- SYSTEM -->
+        <h2>System Details</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem">
+          <div><label for="tech">Technology</label><select id="tech" required><option value="">—</option><option value="storage">Storage Only</option><option value="pv+storage">Solar + Storage</option><option value="generation">Standalone Generation</option></select></div>
+          <div><label for="capacity">Battery kWh</label><input id="capacity" type="number" min="0" step="0.1" value="13.5" required></div>
+          <div><label for="pv">Solar kW</label><input id="pv" type="number" min="0" step="0.1" value="5"></div>
+          <div><label for="itc">Claiming ITC?</label><select id="itc" required><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select></div>
         </div>
 
-        <div style="text-align:right;margin-top:1.5rem"><button type="submit">Check Eligibility</button></div>
+        <button type="submit">Estimate Incentive</button>
       </form>
-      <div id="result" class="card hidden" style="margin-top:1.5rem"></div>
-    </section>
+    </div>
 
-    <!-- RATE TABLES -->
-    <section class="card" id="rates" style="overflow:auto">
-      <h2>Key Incentive Rates</h2>
-      <p style="margin:.5rem 0 1rem;font-size:.9rem">(Offline snapshot – verify at selfgenca.com for updates)</p>
+    <!-- ►► RESULT ◄◄ -->
+    <div id="result" class="card hidden"></div>
+
+    <!-- ►► STATIC RATE TABLE ◄◄ -->
+    <div class="card">
+      <h2>Snapshot of Core Rates (check selfgenca.com for current step)</h2>
       <table>
-        <tr><th>Track</th><th style="min-width:120px">Rate</th></tr>
-        <tr><td>Residential Storage Equity</td><td>$0.85 / Wh</td></tr>
-        <tr><td>Equity Resiliency</td><td>$1.00 / Wh</td></tr>
-        <tr><td>RSSE – Storage</td><td>$1.10 / Wh</td></tr>
-        <tr><td>RSSE – Solar</td><td>$3.10 / W</td></tr>
-        <tr><td>Small Residential (Step 7)</td><td>$0.15 / Wh</td></tr>
-        <tr><td>Large‑Scale (Step 5)</td><td>$0.30 / Wh</td></tr>
-        <tr><td>Generation Base</td><td>$2.00 / W (+$2.50 Resiliency)</td></tr>
+        <tr><th>Track</th><th>Rate</th></tr>
+        <tr><td>RSSE Storage</td><td>$1.10 / Wh</td></tr>
+        <tr><td>RSSE Solar</td><td>$3.10 / W</td></tr>
+        <tr><td>Residential Storage Equity</td><td>$0.85 / Wh</td></tr>
+        <tr><td>Equity Resiliency</td><td>$1.00 / Wh</td></tr>
+        <tr><td>Non-Res Storage Equity</td><td>$0.85 / Wh <small>(flat)</small></td></tr>
+        <tr><td>Non-Res Equity Resiliency</td><td>$1.00 / Wh</td></tr>
+        <tr><td>Small Residential GM (Step 7)</td><td>$0.15 / Wh</td></tr>
+        <tr><td>Large-Scale GM (Step 5)</td><td>$0.30 / Wh</td></tr>
+        <tr><td>Large-Scale GM + ITC</td><td>$0.22 / Wh</td></tr>
+        <tr><td>SJV (pilot)</td><td>$1.00 / Wh ✱</td></tr>
+        <tr><td>Generation Base</td><td>$2.00 / W</td></tr>
+        <tr><td>Generation Resiliency Adder</td><td>+ $2.50 / W</td></tr>
       </table>
-    </section>
-  </main>
+      <p style="font-size:.8rem;margin-top:.5rem">✱ Pending CPUC approval of final SJV rate.</p>
+    </div>
+  </div>
 
-  <footer id="about" style="background:#fff;border-top:1px solid #e2e8f0;text-align:center;padding:1rem;font-size:.85rem">Made with ♥ — last offline refresh 2025‑07‑27.</footer>
-
-  <!-- PURE JS CALCULATOR LOGIC -->
+  <!-- ►► LOGIC ◄◄ -->
   <script>
-    function val(id){return document.getElementById(id).value}
-    function num(id){return parseFloat(val(id))||0}
-    function yes(id){return val(id)==='yes'}
-
-    /* ---- Static Rates (USD) ---- */
-    const R={
-      rsseS:1.10,rssePV:3.10,
-      resEq:0.85,equRes:1.00,
-      smallRes:0.15,large:0.30
+    const rates={
+      rsseS:1.10, rssePV:3.10,
+      resEq:0.85, equRes:1.00,
+      nonResEq:0.85, nonResEquRes:1.00,
+      sjv:1.00,
+      smallRes:0.15, large:0.30, largeITC:0.22,
+      gen:2.00, genAdder:2.50
     };
 
-    function track(){
-      const c=val('customerType'),li=yes('lowIncome'),dac=yes('inDAC'),h=yes('isHFTD');
-      if(['residential-single','residential-multi'].includes(c)&&li){return{t:'RSSE',rate:R.rsseS,solar:R.rssePV}}
-      if(['residential-single','residential-multi'].includes(c)&&dac&&h){return{t:'Equity Resiliency',rate:R.equRes}}
-      if(['residential-single','residential-multi'].includes(c)&&(dac||li)){return{t:'Residential Storage Equity',rate:R.resEq}}
-      if(c==='residential-single'){return{t:'Small Residential (Step 7)',rate:R.smallRes}}
-      return{t:'Large‑Scale Storage (Step 5)',rate:R.large}
+    function $(id){return document.getElementById(id)}
+    function yes(id){return $(id).value==='yes'}
+
+    function decideTrack(){
+      const c=$('customerType').value,
+            li=yes('lowIncome'), dac=yes('dac'), h=yes('hftd'), crit=yes('critical'), sjv=yes('sjv');
+
+      // — Residential Single / Multifamily —
+      if(c.startsWith('res')){
+        if(li){return{t:'RSSE', rS:rates.rsseS, rPV:rates.rssePV}}
+        if(dac&&h){return{t:'Equity Resiliency', rS:rates.equRes}}
+        if(dac||li){return{t:'Residential Storage Equity', rS:rates.resEq}}
+        if(c==='res-sf'){return{t:'General Market – Small Residential', rS:rates.smallRes}}
+        return{t:'General Market – Multifamily (Large-Scale)', rS:rates.large}
+      }
+
+      // — San Joaquin Valley pilot overrides —
+      if(sjv){return{t:'San Joaquin Valley Pilot', rS:rates.sjv}}
+
+      // — Non-Residential —
+      const crit1 = ['gov','smallbiz'].includes(c) || yes('lowIncome'); // simplified representation
+      if(crit1 && dac){
+        if(h && crit){return{t:'Non-Res Equity Resiliency', rS:rates.nonResEquRes}}
+        return{t:'Non-Res Storage Equity', rS:rates.nonResEq}
+      }
+      // General-Market large-scale
+      return{t:'General Market – Large-Scale', rS:rates.large}
     }
 
-    document.getElementById('calcForm').addEventListener('submit',e=>{
+    $('calcForm').addEventListener('submit',e=>{
       e.preventDefault();
-      const cap=num('capacity'),pv=num('solarCapacity');
-      const t=track();
-      const storageUSD=cap*1000*t.rate/1000; // kWh * $/Wh
-      const solarUSD=t.solar?pv*1000*t.solar/1000:0; // kW * $/W
-      const total=storageUSD+solarUSD;
-      document.getElementById('result').innerHTML=`<h2>Result</h2>
-        <p>You qualify for <strong>${t.t}</strong>.</p>
-        <ul style="margin-top:.5rem;font-size:.95rem">
-          <li>Storage incentive: <strong>$${storageUSD.toLocaleString()}</strong></li>
-          ${solarUSD?`<li>Solar incentive: <strong>$${solarUSD.toLocaleString()}</strong></li>`:''}
-          <li style="margin-top:.25rem">Estimated total rebate: <strong>$${total.toLocaleString()}</strong></li>
-        </ul>`;
-      document.getElementById('result').classList.remove('hidden');
-      document.getElementById('result').scrollIntoView({behavior:'smooth'});
+      const tech=$('tech').value, cap=parseFloat($('capacity').value)||0, pv=parseFloat($('pv').value)||0, itc=yes('itc');
+      const t=decideTrack();
+      let msg=`<h2>Preliminary Eligibility</h2><p>You appear to qualify for <strong>${t.t}</strong>.</p>`;
+      let total=0;
+
+      // STORAGE
+      if(tech.includes('storage')){
+        let rate=t.rS;
+        if(t.t.includes('Large-Scale') && itc){rate=rates.largeITC}
+        const storageUSD=cap*rate;
+        total+=storageUSD;
+        msg+=`<p>Storage incentive: <strong>$${storageUSD.toLocaleString()}</strong> (${rate.toFixed(2)} $/Wh)</p>`;
+      }
+      // SOLAR
+      if(tech==='pv+storage' && t.rPV){
+        const solarUSD=pv*t.rPV;
+        total+=solarUSD;
+        msg+=`<p>Solar incentive: <strong>$${solarUSD.toLocaleString()}</strong> (${t.rPV.toFixed(2)} $/W)</p>`;
+      }
+      // GENERATION
+      if(tech==='generation'){
+        const base= pv*rates.gen; // treat pv field as generation kW
+        const add = (yes('hftd') && yes('critical')) ? pv*rates.genAdder : 0;
+        total+=base+add;
+        msg+=`<p>Generation incentive: <strong>$${base.toLocaleString()}</strong> base ${add?`+ $${add.toLocaleString()} resiliency adder`:''}</p>`;
+      }
+
+      msg+=`<p style="margin-top:.5rem;font-weight:700">≈ Estimated Total Rebate: $${total.toLocaleString()}</p>`;
+
+      // DOCUMENTATION — Always show RR, PPM, ICF bullets
+      const docs=[
+        'Online Reservation Request Form (RRF)',
+        'Proof of Utility Service (recent bill)',
+        'Executed Contract / Purchase Agreement',
+        'Load Documentation (if storage > thresholds)',
+        'Preliminary Monitoring Plan (>=30 kW gen or PBI projects)',
+        'Proof of Eligibility (Equity / Resiliency / SJV as applicable)',
+        'Customer Resiliency Attestation (if claiming resiliency)',
+        'Application Fee (non-residential, 5 % of incentive)',
+        'Proof of Authorization to Interconnect (PTO) at ICF stage',
+        'Building Inspection Report (where required)'
+      ];
+      msg+=`<h2 style="margin-top:1.5rem">Core Documentation Checklist</h2><ul class="docs">${docs.map(d=>`<li>${d}</li>`).join('')}</ul>`;
+
+      $('result').innerHTML=msg;
+      $('result').classList.remove('hidden');
+      $('result').scrollIntoView({behavior:'smooth'});
     });
   </script>
 </body>

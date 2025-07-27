@@ -2,376 +2,220 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SGIP Eligibility & Incentive Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>California SGIP Eligibility & Rebate Estimator</title>
   <style>
-    :root {
-      --primary: #f7941d;
-      --secondary: #0070c0;
-      --dark: #05334f;
-      --light: #f9f9f9;
-      --text: #111;
-      --error: #c00;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--light);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: #fff;
-      padding: 1.25rem 1rem;
-      text-align: center;
-    }
-    header h1 { margin: 0; font-size: clamp(1.5rem, 5vw, 2.25rem); }
-
-    main {
-      width: 100%;
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 1rem;
-      flex: 1;
-    }
-
-    section {
-      background: #fff;
-      border-radius: 12px;
-      padding: 1rem 1.25rem 1.5rem;
-      margin-bottom: 1.25rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,.05);
-    }
-    section h2 { margin-top: 0; color: var(--dark); }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: 600;
-    }
-    input, select {
-      width: 100%;
-      padding: 0.6rem 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-      margin-top: 0.25rem;
-    }
-
-    .help {
-      font-size: 0.87rem;
-      color: var(--secondary);
-    }
-
-    .grid {
-      display: grid;
-      gap: 1rem;
-    }
-    @media (min-width:640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
-
-    button {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 0.9rem 1.5rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform .15s ease, background .3s ease;
-    }
-    button:hover { background: #d67e12; transform: translateY(-2px); }
-    button:active { transform: translateY(0); }
-
-    .error { color: var(--error); font-size: 0.9rem; }
-
-    /* Results */
-    .results-card {
-      display: none;
-      animation: fade .4s ease-in-out;
-    }
-    .results-card.show { display: block; }
-    @keyframes fade { from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
-
-    .badge {
-      display: inline-block;
-      background: var(--secondary);
-      color:#fff;
-      padding:0.25rem 0.6rem;
-      border-radius: 4px;
-      font-size:.78rem;
-      margin-bottom:.5rem;
-    }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-    th, td { padding: 0.6rem; border-bottom: 1px solid #ddd; text-align: left; }
-    th { background: var(--light); }
-
-    iframe { width:100%; border:none; border-radius:8px; margin-top:1rem; }
-
-    footer {
-      font-size: .8rem;
-      text-align: center;
-      padding: 1rem 0 2rem;
-    }
-
-    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    :root { --primary:#fdb813; --secondary:#003c71; --accent:#005eb8; --bg:#f9f9f9; --text:#333; --muted:#666; }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:Arial,sans-serif; background:var(--bg); color:var(--text); padding:2rem; }
+    h1 { text-align:center; color:var(--primary); margin-bottom:1rem; }
+    .wrapper { max-width:800px; margin:0 auto; }
+    fieldset { background:#fff; border:1px solid #ddd; border-radius:6px; padding:1rem; margin-bottom:1.5rem; }
+    legend { font-weight:600; color:var(--secondary); padding:0 .5rem; }
+    label { display:block; margin-top:1rem; font-weight:600; }
+    input, select { width:100%; padding:.5rem; margin-top:.3rem; border:1px solid #ccc; border-radius:4px; font-size:1rem; }
+    small.note { display:block; margin-top:.3rem; color:var(--muted); font-size:.85rem; }
+    button { width:100%; padding:.75rem; margin-top:1rem; background:var(--primary); color:#fff; border:none; border-radius:4px; font-size:1rem; cursor:pointer; }
+    button:hover { background:var(--accent); }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    #result { display:none; margin-top:2rem; padding:1rem; background:#fff; border-left:5px solid var(--primary); border-radius:4px; }
+    #result h3 { margin-top:0; color:var(--secondary); }
+    #result p, #result ul { margin:.5rem 0; }
+    #result ul { list-style:disc; padding-left:1.2rem; }
+    .doc-list { margin:.5rem 0; padding-left:1.2rem; list-style:disc; }
+    hr { border:none; border-top:1px solid #eee; margin:1rem 0; }
   </style>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>California SGIP Eligibility & Incentive Calculator</h1>
-  </header>
-  <main>
-    <form id="calcForm">
-      <!-- Customer & Utility -->
-      <section>
-        <h2>1. Customer Information</h2>
-        <div class="grid grid-2">
-          <label>Utility (IOU)
-            <select id="utility" aria-label="Utility" required>
-              <option value="">Choose…</option>
-              <option>PG&amp;E</option>
-              <option>SCE</option>
-              <option>SDG&amp;E</option>
-              <option>SoCalGas</option>
-              <option>LADWP</option>
-            </select>
-          </label>
-          <label>Customer Type
-            <select id="custType" aria-label="Customer type" required>
-              <option value="">Choose…</option>
-              <option>Single-Family</option>
-              <option>Multifamily</option>
-              <option>Non-Residential</option>
-            </select>
-          </label>
-        </div>
-      </section>
+  <h1>California SGIP Rebate Estimator</h1>
+  <div class="wrapper">
+    <form id="calcForm" autocomplete="off" novalidate>
+      <fieldset>
+        <legend>1. Location</legend>
+        <label for="county">County of residence</label>
+        <select id="county" name="county" required>
+          <option value="" disabled selected>Select county…</option>
+        </select>
+        <small id="medianNote" class="note"></small>
+        <label for="hhIncome">Annual household income ($)</label>
+        <input id="hhIncome" name="hhIncome" type="number" min="0" step="1000" placeholder="e.g. 95,000" required />
+      </fieldset>
 
-      <!-- Location & Community -->
-      <section>
-        <h2>2. Location &amp; Community</h2>
-        <div class="grid grid-2">
-          <label>ZIP Code
-            <input id="zip" type="text" pattern="\\d{5}" inputmode="numeric" placeholder="e.g. 90001" required />
-          </label>
-          <label>In Disadvantaged Comm. (DAC) or HFTD?
-            <select id="dacHftd" required>
-              <option value="">Choose…</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </label>
-          <label>SJV Pilot Community?
-            <select id="sjvTown" required>
-              <option value="">Choose…</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </label>
-        </div>
-        <p class="help">Use map below if unsure whether you’re in a DAC.</p>
-        <iframe title="Disadvantaged Community Map" src="https://experience.arcgis.com/experience/1c21c53da8de48f1b946f3402fbae55c/page/SB-535-Disadvantaged-Communities?embed=true" height="400" loading="lazy"></iframe>
-      </section>
+      <fieldset>
+        <legend>2. Customer Profile</legend>
+        <label for="address">Installation address <small>(optional)</small></label>
+        <input id="address" name="address" placeholder="1234 Main St, City, CA" />
+        <label for="custType">Customer type</label>
+        <select id="custType" name="custType" required>
+          <option value="" disabled selected>Select type…</option>
+          <option value="single">Home – Single-Family</option>
+          <option value="multi">Home – Multifamily</option>
+          <option value="nonres">Business / Non-Residential</option>
+        </select>
+      </fieldset>
 
-      <!-- Income & Flags -->
-      <section>
-        <h2>3. Income &amp; Resiliency Flags</h2>
-        <div class="grid grid-2">
-          <label>Household ≤ 80% AMI / CARE / FERA?
-            <select id="incomeFlag" required>
-              <option value="">Choose…</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </label>
-          <label>PSPS, medical baseline or well‑pump?
-            <select id="pspsFlag" required>
-              <option value="">Choose…</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </label>
-          <label>Critical Facility Type
-            <select id="criticalFacility" required>
-              <option value="none">None</option>
-              <option>Hospital</option>
-              <option>Fire Station</option>
-              <option>Police Station</option>
-              <option>Water / Wastewater</option>
-              <option>Telecom</option>
-            </select>
-          </label>
-        </div>
-      </section>
+      <fieldset>
+        <legend>3. Resiliency</legend>
+        <label for="dacFlag">Located in a DAC or High Fire-Threat District?</label>
+        <small class="note">Check using the integrated or CPUC’s online map tools.</small>
+        <select id="dacFlag" name="dacFlag" required>
+          <option value="" disabled selected>Select…</option>
+          <option value="yes">Yes</option>
+          <option value="no">No / Unsure</option>
+        </select>
 
-      <!-- System -->
-      <section>
-        <h2>4. System Sizing</h2>
-        <div class="grid grid-2">
-          <label>Storage Size (kWh)
-            <input id="storageKWh" type="number" min="0" step="0.1" value="30.6" required />
-          </label>
-          <label>Paired Solar Size (kW)
-            <input id="solarKW" type="number" min="0" step="0.1" value="8" />
-          </label>
-          <label>Backup‑capable?
-            <select id="backupCapable" required>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </label>
-        </div>
-        <p id="error" class="error" aria-live="polite"></p>
-        <button type="submit" aria-label="Calculate incentives">Calculate</button>
-      </section>
+        <label for="pspsFlag">Experienced 2 or more PSPS events?</label>
+        <small class="note">Check your utility’s PSPS outage history online.</small>
+        <select id="pspsFlag" name="pspsFlag" required>
+          <option value="" disabled selected>Select…</option>
+          <option value="yes">Yes</option>
+          <option value="no">No / Unsure</option>
+        </select>
+
+        <label for="critFlag">Medical Baseline or Critical Well-Pump participant?</label>
+        <small class="note">Verify on your utility bill under special rates or programs.</small>
+        <select id="critFlag" name="critFlag" required>
+          <option value="" disabled selected>Select…</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+
+        <label for="careFlag">CARE Program Participant?</label>
+        <small class="note">Found on your utility bill under special discounts.</small>
+        <select id="careFlag" name="careFlag" required>
+          <option value="" disabled selected>Select…</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+
+        <details style="margin-top:1rem">
+          <summary style="cursor:pointer;font-weight:600;color:var(--secondary)">View Resiliency Maps</summary>
+          <div style="margin-top:.5rem">
+            <iframe src="https://experience.arcgis.com/experience/1c21c53da8de48f1b946f3402fbae55c" width="100%" height="200" style="border:none;"></iframe>
+            <iframe src="https://capuc.maps.arcgis.com/apps/dashboards/ecd21b1c204f47da8b1fcc4c5c3b7d3a" width="100%" height="200" style="border:none;margin-top:.5rem;"></iframe>
+            <iframe src="https://capuc.maps.arcgis.com/apps/webappviewer/index.html?id=5bdb921d747a46929d9f00dbdb6d0fa2" width="100%" height="200" style="border:none;margin-top:.5rem;"></iframe>
+          </div>
+        </details>
+      </fieldset>
+
+      <fieldset>
+        <legend>4. System Size</legend>
+        <label for="storageKWh">Battery Capacity (kWh)</label>
+        <small class="note">Check battery specs or installation proposal (Default: 30.6 kWh).</small>
+        <input id="storageKWh" name="storageKWh" type="number" min="0" step="0.1" value="30.6" required />
+
+        <label for="solarKW">Solar Array Size (kW, optional)</label>
+        <small class="note">Check system proposal (Default: 8 kW).</small>
+        <input id="solarKW" name="solarKW" type="number" min="0" step="0.1" value="8" />
+      </fieldset>
+
+      <button type="submit">Calculate &amp; Print PDF</button>
     </form>
 
-    <section id="results" class="results-card" aria-label="Results"></section>
-  </main>
-
-  <footer>
-    Rates per <a href="https://www.cpuc.ca.gov/sgip" target="_blank" rel="noopener">CPUC SGIP</a>. Unofficial tool.
-  </footer>
+    <div id="result"></div>
+  </div>
 
   <script>
-    const RATES = {
-      resSolarStorageEquity2025: 1.10, // $/Wh (1100 $/kWh)
-      solarAdder: 3.10,                // $/W
-      resStorageEquity: 0.85,          // $/Wh (legacy)
-      resEquityResiliency: 1.00,       // $/Wh
-      smallResStep1: 0.50,             // $/Wh
-      largeScaleStorageStep1: 0.50,    // $/Wh
-      resiliencyAdderNonRes: 0.15,     // $/Wh
-      genBase: 2.00,                   // $/W
-      genResiliencyAdder: 2.50         // $/W
+    const COUNTY_AMI = {
+      "Alameda":159800,"Alpine":129500,"Amador":109900,"Butte":96600,"Calaveras":101500,
+      "Colusa":96400,"Contra Costa":159800,"Del Norte":93900,"El Dorado":120800,"Fresno":93900,
+      "Glenn":93900,"Humboldt":93900,"Imperial":93900,"Inyo":97200,"Kern":93900,"Kings":93900,
+      "Lake":93900,"Lassen":93900,"Los Angeles":106600,"Madera":93900,"Marin":186600,"Mariposa":93900,
+      "Mendocino":93900,"Merced":93900,"Modoc":93900,"Mono":118500,"Monterey":104500,"Napa":146700,
+      "Nevada":124600,"Orange":136600,"Placer":120800,"Plumas":95300,"Riverside":103900,"Sacramento":120800,
+      "San Benito":140200,"San Bernardino":103900,"San Diego":130800,"San Francisco":186600,"San Joaquin":104600,
+      "San Luis Obispo":125600,"San Mateo":186600,"Santa Barbara":119100,"Santa Clara":195200,
+      "Santa Cruz":132800,"Shasta":101800,"Sierra":93900,"Siskiyou":93900,"Solano":124600,"Sonoma":132000,
+      "Stanislaus":98500,"Sutter":98900,"Tehama":93900,"Trinity":93900,"Tulare":93900,"Tuolumne":101600,
+      "Ventura":131300,"Yolo":135900,"Yuba":98900
     };
+    const SIZE_ADJ = [0.7,0.8,0.9,1,1.08,1.16,1.24,1.32];
+    const money = v=>isNaN(v)?'N/A':v.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
 
-    const programs = [
-      {
-        name: "Residential Solar & Storage Equity (Low‑Income)",
-        badge: "Res Equity Solar+Storage",
-        category: "residential",
-        eligibility: u => (u.custType !== "Non-Residential") && (u.incomeFlag === "yes"),
-        rate: u => RATES.resSolarStorageEquity2025,
-        caps: { kWh: () => 30 } // cap is 30 kWh unless justified
-      },
-      {
-        name: "Residential Equity (Storage‑only)",
-        badge: "Res Equity Storage",
-        category: "residential",
-        eligibility: u => (u.custType !== "Non-Residential") && (u.incomeFlag === "yes"),
-        rate: u => RATES.resStorageEquity,
-        caps: { kWh: () => 30 }
-      },
-      {
-        name: "Residential Equity – Resiliency",
-        badge: "Equity‑Resiliency",
-        category: "residential",
-        eligibility: u => (u.custType !== "Non-Residential") && (u.pspsFlag === "yes"),
-        rate: u => RATES.resEquityResiliency,
-        caps: { kWh: () => 30 }
-      },
-      {
-        name: "Small Residential Storage (General Market)",
-        badge: "Small Res",
-        category: "residential",
-        eligibility: u => (u.custType !== "Non-Residential"),
-        rate: u => RATES.smallResStep1,
-        caps: { kWh: () => 30 }
-      },
-      {
-        name: "San Joaquin Valley Pilot",
-        badge: "SJV Pilot",
-        category: "residential",
-        eligibility: u => u.sjvTown === "yes",
-        rate: u => RATES.resSolarStorageEquity2025,
-        caps: { kWh: () => 30 }
-      },
-      {
-        name: "Non‑Residential Equity",
-        badge: "Non‑Res Equity",
-        category: "non-residential",
-        eligibility: u => (u.custType === "Non-Residential") && u.dacHftd === "yes",
-        rate: u => RATES.smallResStep1,
-        caps: { kWh: () => 2000 }
-      },
-      {
-        name: "Non‑Residential Equity Resiliency",
-        badge: "Non‑Res Resiliency",
-        category: "non-residential",
-        eligibility: u => (u.custType === "Non-Residential") && (u.pspsFlag === "yes" || u.criticalFacility !== "none"),
-        rate: u => RATES.smallResStep1 + RATES.resiliencyAdderNonRes,
-        caps: { kWh: () => 2000 }
-      }
-    ];
-
-    const form = document.getElementById("calcForm");
-    const resultsEl = document.getElementById("results");
-    const errorEl = document.getElementById("error");
-
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      errorEl.textContent = "";
-
-      const user = {
-        utility: document.getElementById("utility").value,
-        zip: document.getElementById("zip").value,
-        dacHftd: document.getElementById("dacHftd").value,
-        custType: document.getElementById("custType").value,
-        incomeFlag: document.getElementById("incomeFlag").value,
-        pspsFlag: document.getElementById("pspsFlag").value,
-        sjvTown: document.getElementById("sjvTown").value,
-        criticalFacility: document.getElementById("criticalFacility").value,
-        storageKWh: parseFloat(document.getElementById("storageKWh").value || 0),
-        solarKW: parseFloat(document.getElementById("solarKW").value || 0),
-        backupCapable: document.getElementById("backupCapable").value
-      };
-
-      if (!user.utility || !user.storageKWh) {
-        errorEl.textContent = "Please complete required fields.";
-        return;
-      }
-
-      let html = `<h2>Estimated Incentives for ${user.storageKWh} kWh Storage & ${user.solarKW} kW Solar</h2>`;
-      html += `<table><thead><tr><th>Program</th><th>Eligible</th><th>Rate ($/Wh)</th><th>Est. Incentive</th></tr></thead><tbody>`;
-
-      programs.forEach(p => {
-        const eligible = p.eligibility(user);
-        const rate = p.rate(user);
-        const cap = p.caps.kWh();
-        const kWhUsed = Math.min(user.storageKWh, cap);
-        const storageAmt = kWhUsed * 1000 * rate;
-        const solarAmt = user.solarKW ? user.solarKW * RATES.solarAdder * (p.name.includes("Solar") ? 1 : 0) : 0;
-        const total = eligible ? storageAmt + solarAmt : 0;
-
-        html += `<tr>
-          <td><span class="badge">${p.badge}</span> ${p.name}</td>
-          <td>${eligible ? "Yes" : "No"}</td>
-          <td>$${rate.toFixed(2)}</td>
-          <td>${eligible ? "$" + total.toLocaleString(undefined, {maximumFractionDigits:0}) : "–"}</td>
-        </tr>`;
+    function populateCounties(){
+      const sel=document.getElementById('county');
+      sel.innerHTML = '<option value="" disabled selected>Select county…</option>' +
+        Object.keys(COUNTY_AMI).sort().map(c=>`<option value="${c}">${c}</option>`).join('');
+    }
+    function updateMedian(){
+      const c=document.getElementById('county').value;
+      document.getElementById('medianNote').textContent =
+        c?`4-person AMI for ${c}: ${money(COUNTY_AMI[c])}`:'';
+    }
+    function geocode(addr){
+      return new Promise(res=>{
+        new google.maps.Geocoder().geocode({address:addr},(r,s)=>res(s==='OK'&&r[0]?r[0].geometry.location:null));
       });
+    }
+    async function fetchFeatures(url){
+      try{let r=await fetch(url);if(!r.ok) throw'';let j=await r.json();return j.features||[]}catch{return[]}
+    }
+    async function checkDAC(lat,lng){return (await fetchFeatures(`https://gis.data.ca.gov/arcgis/rest/services/Environmental/CalEnviroScreen_4/MapServer/3/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&inSR=4326&outFields=SB535&returnGeometry=false&f=json`)).some(x=>x.attributes.SB535==='Y');}
+    async function checkHFTD(lat,lng){return (await fetchFeatures(`https://services2.arcgis.com/nj6xXZ7U2CGDtXPl/arcgis/rest/services/CPUC_Fire_Threat_Districts/FeatureServer/0/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&inSR=4326&outFields=FHSZONES&returnGeometry=false&f=json`)).some(x=>['2','3'].includes(String(x.attributes.FHSZONES)));}
+    async function checkPSPS(lat,lng){return (await fetchFeatures(`https://services2.arcgis.com/YZCmG5dGqn0pln4I/arcgis/rest/services/PSPS_Events_Layer/FeatureServer/0/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&inSR=4326&outFields=*&returnGeometry=false&f=json`)).length>0;}
+    function threshold(county,size){
+      const b=COUNTY_AMI[county]; if(!b||isNaN(size)) return null;
+      const idx=Math.min(Math.max(size-1,0),7);
+      return b * SIZE_ADJ[idx] * 0.8;
+    }
 
-      html += `</tbody></table>`;
-      html += `<p class="help">Non‑residential storage & generation receive 50% upfront, 50% via performance‑based incentives (PBI).</p>`;
-      html += `<p class="help">Results assume SGIP budget step 1 rates; actual reservation depends on remaining funds & step at time of application.</p>`;
+    async function onSubmit(e){
+      e.preventDefault();
+      const f=e.target, btn=f.querySelector('button'), res=document.getElementById('result');
+      btn.disabled=true; res.style.display='none'; res.innerHTML='';
 
-      resultsEl.innerHTML = html;
-      resultsEl.classList.add("show");
-      resultsEl.scrollIntoView({behavior:"smooth"});
+      const d=Object.fromEntries(new FormData(f)), income=+d.hhIncome, bat=+d.storageKWh, sol=+d.solarKW;
+      if(!d.county||isNaN(income)||!d.custType){
+        alert('Please fill all required fields.');
+        btn.disabled=false; return;
+      }
+
+      const thr=threshold(d.county,4), low=income<=thr, tracks=[];
+      if(d.custType==='single'&&sol>0&&bat>0){
+        const est=1.10*bat*1000+3.10*sol*1000;
+        tracks.push({title:'Equity Solar + Storage',desc:'Low-income residence adding new battery and solar receives the highest SGIP incentive.',reb:est,rate:'($1.10/Wh + $3.10/W)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)','Proof of CARE/FERA or income affidavit'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
+      }
+      if(d.dacFlag==='yes'||d.pspsFlag==='yes'||d.critFlag==='yes'){
+        const est=1.00*bat*1000;
+        tracks.push({title:'Equity Resiliency',desc:'Low-income residence in wildfire/PSPS risk (or medical baseline) receives $1/Wh bonus.',reb:est,rate:'($1.00/Wh)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)','Proof of CARE/FERA or income affidavit','Medical Baseline letter or well-pump affidavit','Proof of ≥2 PSPS events or HFTD map'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
+      }
+      if(low&&bat>0&&sol===0){
+        const est=0.85*bat*1000;
+        tracks.push({title:'Equity Storage-Only',desc:'Low-income residence installing a stand-alone battery.',reb:est,rate:'($0.85/Wh)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)','Proof of CARE/FERA or income affidavit'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
+      }
+      if(sol>0&&bat===0){
+        const est=2.00*sol*1000;
+        tracks.push({title:'Generation (PV-Only)',desc:'PV generation incentive (flat $2/W).',reb:est,rate:'($2.00/W)',docs:['Recent utility bill','System equipment quote/contract','Interconnection application (or NBT/NEM doc)'],next:'Reserve incentive → Sign SGIP agreement → Install system → File incentive claim.'});
+      }
+      if(!tracks.length) tracks.push({title:'No tracks found.',desc:'',reb:0,rate:'',docs:[],next:''});
+
+      let html='<h3>Estimated Rebates</h3>';
+      tracks.forEach(item=>{
+        html+=`<h4>${item.title}</h4><p>${item.desc}</p><p><strong>Estimated rebate:</strong> ${money(item.reb)}</p><p>${item.rate}</p><p><strong>Documents you’ll likely need:</strong></p><ul class="doc-list">${item.docs.map(d=>`<li>${d}</li>`).join('')}</ul><p><strong>Next steps:</strong> ${item.next}</p><hr>`;
+      });
+      res.innerHTML=html;
+
+      if(!document.getElementById('downloadBtn')){
+        const b=document.createElement('button');
+        b.id='downloadBtn';
+        b.textContent='Calculate & Print PDF';
+        b.onclick=()=>html2pdf().from(document.querySelector('.wrapper')).save();
+        res.appendChild(b);
+      }
+      res.style.display='block';
+      btn.disabled=false;
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      populateCounties();
+      document.getElementById('county').addEventListener('change',updateMedian);
+      document.getElementById('calcForm').addEventListener('submit',onSubmit);
+      if(window.google&&google.maps&&google.maps.places){
+        new google.maps.places.Autocomplete(document.getElementById('address'),{types:['address'],componentRestrictions:{country:'us'}});
+      }
     });
   </script>
 </body>
 </html>
-<!--
-**a.** Want color‑blind friendly palette tweaks?
-**b.** Embed AMI lookup API to auto‑check income eligibility next?
--->
-
